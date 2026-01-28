@@ -120,6 +120,7 @@ dependencies {
    implementation(projects.commonRetrofit)
    implementation(projects.commonRetrofit.android)
    implementation(projects.commonCompose)
+   implementation(projects.wifi.ui)
 
    implementation(libs.androidx.activity.compose)
    implementation(libs.androidx.core)

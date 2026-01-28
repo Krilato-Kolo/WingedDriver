@@ -2,6 +2,7 @@ package com.krilatokolo.wingeddriver
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.krilatokolo.wingeddriver.navigation.keys.WifiConnectScreenKey
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,8 +17,7 @@ class MainViewModel : ViewModel() {
 
    init {
       viewModelScope.launch {
-         // _startingScreen.value = TODO
-         error("Initial screen not provided")
+         _startingScreen.value = WifiConnectScreenKey
       }
    }
 
