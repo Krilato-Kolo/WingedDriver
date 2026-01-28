@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Winged Driver</string>
+
+    <string name="grant">Grant</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="notifications_permission_title">Posting notifications</string>
+    <string name="notification_permission_description">Needed for error reporting</string>
+    <string name="continue_to_the_app">Continue to the app</string>
+    <string name="onboarding_title">Welcome to the Winged Driver App!</string>
 </resources>
