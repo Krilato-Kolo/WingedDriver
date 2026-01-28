@@ -14,7 +14,7 @@ android {
    namespace = "com.krilatokolo.wingeddriver.sharedresources"
 
    defaultConfig {
-      minSdk = 24
+      minSdk = 26
    }
 
    androidResources.enable = true
