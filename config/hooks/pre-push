@@ -1,0 +1,10 @@
+# Remove following line to enable hook
+exit 0
+
+while read local_ref local_oid remote_ref remote_oid
+do
+    if [[ $remote_ref == *"/develop" ]] || [[ $remote_ref == *"/main" ]] || [[ $remote_ref == *"/master" ]]; then
+        echo "Cannot push into protected $remote_ref. Use PRs to get code into those branches. Exiting..."
+        exit 1
+    fi
+done
