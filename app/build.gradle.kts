@@ -120,6 +120,7 @@ dependencies {
    implementation(projects.commonRetrofit)
    implementation(projects.commonRetrofit.android)
    implementation(projects.commonCompose)
+   implementation(projects.logging.crashreport)
    implementation(projects.wifi.ui)
 
    implementation(libs.androidx.activity.compose)
@@ -142,8 +143,6 @@ dependencies {
 
    implementation(libs.androidx.datastore)
    implementation(libs.androidx.datastore.preferences)
-
-   debugImplementation(libs.whatTheStack)
 
    androidTestImplementation(libs.androidx.test.junitRules)
    androidTestImplementation(libs.androidx.test.runner)
