@@ -15,13 +15,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import com.krilatokolo.wingeddriver.di.ApplicationGraph
+import com.krilatokolo.wingeddriver.di.MainApplicationGraph
 import dev.zacsweers.metro.createGraphFactory
 import dispatch.core.DefaultDispatcherProvider
 import dispatch.core.defaultDispatcher
 import logcat.AndroidLogcatLogger
 import logcat.LogPriority
-import com.krilatokolo.wingeddriver.di.ApplicationGraph
-import com.krilatokolo.wingeddriver.di.MainApplicationGraph
 import si.inova.kotlinova.core.dispatchers.AccessCallbackDispatcherProvider
 
 open class WingedDriverApplication : Application() {
@@ -56,7 +56,7 @@ open class WingedDriverApplication : Application() {
          }
       )
 
-      enableStrictMode()
+      // enableStrictMode()
 
       DefaultDispatcherProvider.set(
          AccessCallbackDispatcherProvider(DefaultDispatcherProvider.get()) {

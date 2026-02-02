@@ -1,0 +1,24 @@
+plugins {
+   androidLibraryModule
+   compose
+   di
+   navigation
+}
+
+android {
+   namespace = "com.krilatokolo.wingeddriver.driving.ui"
+
+   buildFeatures {
+      androidResources = true
+   }
+}
+
+dependencies {
+   api(projects.driving.api)
+
+   implementation(libs.dispatch)
+   implementation(libs.kotlinova.core)
+   implementation(libs.kotlinova.compose)
+
+   testImplementation(testFixtures(projects.common))
+}

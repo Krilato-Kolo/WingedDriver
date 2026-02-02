@@ -1,8 +1,8 @@
 package com.krilatokolo.wingeddriver.ui.components
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,20 +35,27 @@ fun <T> ProgressErrorSuccessScaffold(
 ) {
    when (val outcome = outcomeProvider()) {
       is Outcome.Error -> {
-         Text(
-            text = errorText(outcome.exception),
-            errorProgressModifier
-               .fillMaxWidth()
-               .wrapContentWidth(),
-            color = MaterialTheme.colorScheme.error
-         )
+         val data = outcome.data
+         println("error $data")
+         if (data != null) {
+            ErrorAlertDialog(outcome)
+            data(data)
+         } else {
+            Text(
+               text = errorText(outcome.exception),
+               errorProgressModifier
+                  .fillMaxSize()
+                  .wrapContentSize(),
+               color = MaterialTheme.colorScheme.error
+            )
+         }
       }
 
       is Outcome.Progress -> {
          CircularProgressIndicator(
             errorProgressModifier
-               .fillMaxWidth()
-               .wrapContentWidth()
+               .fillMaxSize()
+               .wrapContentSize()
          )
       }
 

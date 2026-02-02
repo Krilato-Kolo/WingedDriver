@@ -120,7 +120,10 @@ dependencies {
    implementation(projects.commonRetrofit)
    implementation(projects.commonRetrofit.android)
    implementation(projects.commonCompose)
+   implementation(projects.driving.data)
+   implementation(projects.driving.ui)
    implementation(projects.logging.crashreport)
+   implementation(projects.wifi.data)
    implementation(projects.wifi.ui)
 
    implementation(libs.androidx.activity.compose)
