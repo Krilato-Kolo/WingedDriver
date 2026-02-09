@@ -36,7 +36,6 @@ fun <T> ProgressErrorSuccessScaffold(
    when (val outcome = outcomeProvider()) {
       is Outcome.Error -> {
          val data = outcome.data
-         println("error $data")
          if (data != null) {
             ErrorAlertDialog(outcome)
             data(data)

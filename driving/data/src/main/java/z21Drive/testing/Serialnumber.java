@@ -28,7 +28,6 @@ public class Serialnumber implements Runnable {
                     return;
                 }
                 Z21ResponseGetSerialNumber number = (Z21ResponseGetSerialNumber) response;
-                System.out.println("Received Response: " + number.serialNumber);
             }
 
             @Override

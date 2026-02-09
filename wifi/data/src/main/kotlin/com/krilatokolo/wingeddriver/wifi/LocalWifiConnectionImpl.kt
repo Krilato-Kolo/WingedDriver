@@ -57,13 +57,11 @@ class LocalWifiConnectionImpl(
       val connectivityManager = context.getSystemService<ConnectivityManager>()!!
 
       connectivityManager.requestNetwork(networkRequest, networkCallback)
-      println("requested network")
    }
 
    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
       override fun onAvailable(network: Network) {
          super.onAvailable(network)
-         println("Connected")
 
          currentConnection.value = network
          //                _mainState.subscriptionCount.map { it > 0 }.distinctUntilChanged().collect { active ->
@@ -73,40 +71,33 @@ class LocalWifiConnectionImpl(
       }
 
       override fun onUnavailable() {
-         println("failed to connect")
          currentConnection.value = null
          super.onUnavailable()
          // Failed to connect
       }
 
       override fun onBlockedStatusChanged(network: Network, blocked: Boolean) {
-         println("OBSC $blocked")
       }
 
       override fun onCapabilitiesChanged(
          network: Network,
          networkCapabilities: NetworkCapabilities,
       ) {
-         println("capabilities $networkCapabilities")
       }
 
       override fun onLinkPropertiesChanged(
          network: Network,
          linkProperties: LinkProperties,
       ) {
-         println("linkProperties $linkProperties")
       }
 
       override fun onLosing(network: Network, maxMsToLive: Int) {
-         println("losing $maxMsToLive")
       }
 
       override fun onLost(network: Network) {
-         println("lost")
       }
 
       override fun onReserved(networkCapabilities: NetworkCapabilities) {
-         println("reserved")
       }
    }
 }

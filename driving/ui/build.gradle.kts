@@ -16,6 +16,7 @@ android {
 dependencies {
    api(projects.driving.api)
    api(projects.common)
+   api(projects.commonAndroid)
    implementation(projects.commonCompose)
 
    implementation(libs.dispatch)

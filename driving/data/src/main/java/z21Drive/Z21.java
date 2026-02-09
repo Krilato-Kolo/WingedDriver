@@ -102,9 +102,7 @@ public class Z21 implements Runnable {
         while (!exit) {
             try {
                 DatagramPacket packet = new DatagramPacket(new byte[510], 510);
-//                System.out.println("waiting for packet");
                 socket.receive(packet);
-//                System.out.println("socket received!");
                 //Determine if it's a response or a broadcast
                 if (PacketConverter.responseFromPacket(packet) != null) {
                     Z21Response response = PacketConverter.responseFromPacket(packet);
@@ -158,7 +156,6 @@ public class Z21 implements Runnable {
 
         listenerThread = new Thread(this);
         try {
-//            System.out.println("datagramsocket " + port + " " + inetAddress);
             socket = new DatagramSocket(null);
             if (network != null) {
                 network.bindSocket(socket);

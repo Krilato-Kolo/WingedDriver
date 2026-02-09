@@ -48,7 +48,6 @@ class DrivingControllerImpl(
    private var connected = false
 
    override suspend fun connect() {
-      println("connect")
       delay(1.seconds)
       val network = localWifiConnection.getCurrentConnection().first()
       val linkProperties = network?.let {
@@ -72,7 +71,8 @@ class DrivingControllerImpl(
 
    @Suppress("MagicNumber") // TMP
    override fun changeSpeed(newSpeed: Int) {
-      activeLoco.update { it?.copy(speed = newSpeed) }
+      activeLoco.update { it?.copy(speed = newSpeed.coerceIn(0..it.maxSpeed)) }
+      println("change speed $newSpeed $activeLoco.value")
    }
 
    override fun changeDirection(forward: Boolean) {
@@ -83,7 +83,6 @@ class DrivingControllerImpl(
       activeLoco.value = ActiveLocoState(id, 0, true, 0)
 
       connectionScope?.launch {
-         println("request getLoco")
          z21.sendActionToZ21(Z21ActionGetLocoInfo(id))
       }
    }
@@ -93,12 +92,10 @@ class DrivingControllerImpl(
          type: BroadcastTypes,
          broadcast: Z21Broadcast,
       ) {
-         println("onBroadcsat $type $connected")
          if (!connected) {
             // onConnected()
          }
 
-         println("got broadcast $type")
          when (broadcast) {
             is Z21BroadcastLanXLocoInfo -> {
                locos.update { list ->
@@ -109,17 +106,16 @@ class DrivingControllerImpl(
                   }
                }
 
-               println("got broadcast $broadcast ${activeLoco.value?.id}")
                activeLoco.update { activeLoco ->
                   if (activeLoco?.id == broadcast.locoAddress) {
                      activeLoco.copy(
                         speed = broadcast.speed,
-                        maxSpeed = broadcast.speedSteps,
+                        maxSpeed = broadcast.speedSteps - 1,
                         forward = broadcast.direction,
                      )
                   } else {
                      activeLoco
-                  }.also { println("update active loco $it") }
+                  }
                }
             }
          }
@@ -152,7 +148,6 @@ class DrivingControllerImpl(
          while (isActive) {
             activeLoco.value?.let { activeLoco ->
                if (lastSpeed != activeLoco.speed || lastDirection != activeLoco.forward) {
-                  println("send speet ${activeLoco.speed}")
                   z21.sendActionToZ21(
                      Z21ActionSetLocoDrive(
                         activeLoco.id,
