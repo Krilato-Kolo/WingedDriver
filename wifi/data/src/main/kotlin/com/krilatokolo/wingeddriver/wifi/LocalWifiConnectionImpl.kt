@@ -38,6 +38,7 @@ class LocalWifiConnectionImpl(
       if (!wifiManager.isWifiEnabled) {
          throw RawPrintException("Wifi is not enabled")
       }
+
       // if (!wifiManager.isStaConcurrencyForLocalOnlyConnectionsSupported) {
       //    // throw Exception("Local Wifi connection not supported.")
       // }

@@ -80,7 +80,6 @@ public class Z21 implements Runnable {
             InetAddress address = InetAddress.getByName(host);
             packet.setAddress(address);
             packet.setPort(port);
-            System.out.println("Sending " + socket.getLocalAddress() + " " + socket.getInetAddress());
             socket.send(packet);
         } catch (IOException e) {
             e.printStackTrace();

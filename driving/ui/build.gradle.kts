@@ -15,6 +15,8 @@ android {
 
 dependencies {
    api(projects.driving.api)
+   api(projects.common)
+   implementation(projects.commonCompose)
 
    implementation(libs.dispatch)
    implementation(libs.kotlinova.core)

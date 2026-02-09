@@ -1,12 +1,14 @@
 package com.krilatokolo.wingeddriver.driving
 
 import androidx.compose.runtime.Stable
+import com.krilatokolo.wingeddriver.common.ActivityStartedRepository
 import com.krilatokolo.wingeddriver.navigation.keys.DrivingScreenKey
 import dev.zacsweers.metro.Inject
 import dispatch.core.withDefault
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import si.inova.kotlinova.core.flow.hasActiveSubscribersFlow
+import kotlinx.coroutines.flow.map
+import si.inova.kotlinova.core.flow.collectInto
 import si.inova.kotlinova.core.outcome.CoroutineResourceManager
 import si.inova.kotlinova.navigation.services.ContributesScopedService
 import si.inova.kotlinova.navigation.services.SingleScreenViewModel
@@ -17,6 +19,7 @@ import si.inova.kotlinova.navigation.services.SingleScreenViewModel
 class DrivingScreenViewModel(
    private val resources: CoroutineResourceManager,
    private val drivingController: DrivingController,
+   private val activityStartedRepository: ActivityStartedRepository,
 ) : SingleScreenViewModel<DrivingScreenKey>(resources.scope) {
    private val _uiState = MutableStateFlow<DrivingState>(DrivingState())
    val uiState: StateFlow<DrivingState>
@@ -25,7 +28,7 @@ class DrivingScreenViewModel(
    override fun onServiceRegistered() {
       resources.launchWithExceptionReporting {
          withDefault {
-            _uiState.hasActiveSubscribersFlow().collect {
+            activityStartedRepository.activityStarted.collect {
                if (it) {
                   drivingController.connect()
                } else {
@@ -34,10 +37,26 @@ class DrivingScreenViewModel(
             }
          }
       }
+
+      resources.launchWithExceptionReporting {
+         val flow = drivingController.activeLoco.map { activeLoco ->
+            if (activeLoco != null) {
+               DrivingState(activeLoco.id, activeLoco.speed, activeLoco.maxSpeed, activeLoco.forward)
+            } else {
+               DrivingState()
+            }
+         }
+
+         flow.collectInto(_uiState)
+      }
    }
 
    fun setSpeed(newSpeed: Int) {
       drivingController.changeSpeed(newSpeed)
+   }
+
+   fun setDirection(forward: Boolean) {
+      drivingController.changeDirection(forward)
    }
 
    override fun onServiceUnregistered() {
@@ -45,5 +64,5 @@ class DrivingScreenViewModel(
       super.onServiceUnregistered()
    }
 
-   data class DrivingState(val dummy: String = "")
+   data class DrivingState(val activeLoco: Int? = null, val speed: Int = 0, val maxSpeed: Int = 0, val forward: Boolean = true)
 }

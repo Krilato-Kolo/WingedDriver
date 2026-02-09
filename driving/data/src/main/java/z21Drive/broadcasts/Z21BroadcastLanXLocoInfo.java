@@ -256,4 +256,15 @@ public class Z21BroadcastLanXLocoInfo extends Z21Broadcast {
         array[12] = f12On;
         return array;
     }
+
+    @Override
+    public String toString() {
+        return "Z21BroadcastLanXLocoInfo{" +
+                "speed=" + speed +
+                ", direction=" + direction +
+                ", speedSteps=" + speedSteps +
+                ", locoInUse=" + locoInUse +
+                ", locoAddress=" + locoAddress +
+                '}';
+    }
 }

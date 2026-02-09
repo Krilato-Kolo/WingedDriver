@@ -43,6 +43,8 @@ class MainActivity : ComponentActivity() {
    private lateinit var dateFormatter: AndroidDateTimeFormatter
    private lateinit var mainViewModelFactory: MainViewModel.Factory
 
+   private lateinit var activityStartedRepository: ActivityStartedRepositoryImpl
+
    private val viewModel by viewModels<MainViewModel>() { ViewModelFactory() }
    private var initComplete = false
 
@@ -54,6 +56,7 @@ class MainActivity : ComponentActivity() {
       navigationContext = appGraph.getNavigationContext()
       dateFormatter = appGraph.getDateFormatter()
       mainViewModelFactory = appGraph.getMainViewModelFactory()
+      activityStartedRepository = appGraph.getActivityStartedRepository()
 
       super.onCreate(savedInstanceState)
       enableEdgeToEdge()
@@ -62,6 +65,16 @@ class MainActivity : ComponentActivity() {
       splashScreen.setKeepOnScreenCondition { !initComplete }
 
       beginInitialisation(savedInstanceState == null)
+   }
+
+   override fun onStart() {
+      super.onStart()
+      activityStartedRepository.activityStarted.value = true
+   }
+
+   override fun onStop() {
+      activityStartedRepository.activityStarted.value = false
+      super.onStop()
    }
 
    private fun beginInitialisation(startup: Boolean) {

@@ -1,11 +1,12 @@
 package com.krilatokolo.wingeddriver.di
 
 import android.app.Application
+import com.krilatokolo.wingeddriver.ActivityStartedRepositoryImpl
+import com.krilatokolo.wingeddriver.MainViewModel
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dispatch.core.DefaultCoroutineScope
-import com.krilatokolo.wingeddriver.MainViewModel
 import si.inova.kotlinova.core.reporting.ErrorReporter
 import si.inova.kotlinova.core.time.AndroidDateTimeFormatter
 import si.inova.kotlinova.navigation.deeplink.MainDeepLinkHandler
@@ -32,4 +33,6 @@ interface ApplicationGraph {
    fun getNavigationContext(): NavigationContext
    fun getDateFormatter(): AndroidDateTimeFormatter
    fun getMainViewModelFactory(): MainViewModel.Factory
+
+   fun getActivityStartedRepository(): ActivityStartedRepositoryImpl
 }
