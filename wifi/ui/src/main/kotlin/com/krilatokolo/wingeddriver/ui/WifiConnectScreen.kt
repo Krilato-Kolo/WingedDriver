@@ -15,15 +15,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.krilatokolo.wingeddriver.navigation.keys.DrivingScreenKey
 import com.krilatokolo.wingeddriver.navigation.keys.WifiConnectScreenKey
 import com.krilatokolo.wingeddriver.ui.components.ProgressErrorSuccessScaffold
 import si.inova.kotlinova.compose.flow.collectAsStateWithLifecycleAndBlinkingPrevention
+import si.inova.kotlinova.navigation.instructions.navigateTo
+import si.inova.kotlinova.navigation.navigator.Navigator
 import si.inova.kotlinova.navigation.screens.InjectNavigationScreen
 import si.inova.kotlinova.navigation.screens.Screen
 
 @InjectNavigationScreen
 class WifiConnectScreen(
    private val viewModel: WifiConnectViewModel,
+   private val navigator: Navigator,
 ) : Screen<WifiConnectScreenKey>() {
    @Composable
    override fun Content(key: WifiConnectScreenKey) {
@@ -53,6 +57,10 @@ class WifiConnectScreen(
 
             Button(onClick = { viewModel.connect() }) {
                Text("Connect")
+            }
+
+            Button(onClick = { navigator.navigateTo(DrivingScreenKey) }) {
+               Text("Preskoči")
             }
          }
       }
