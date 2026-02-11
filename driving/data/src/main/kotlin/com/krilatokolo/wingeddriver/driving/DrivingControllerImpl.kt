@@ -64,9 +64,11 @@ class DrivingControllerImpl(
    }
 
    override fun disconnect() {
-      connectionScope?.cancel()
-      z21.shutdown()
-      connected = false
+      connectionScope?.launch {
+         connectionScope?.cancel()
+         z21.shutdown()
+         connected = false
+      }
    }
 
    @Suppress("MagicNumber") // TMP
