@@ -21,12 +21,16 @@ import kotlinx.coroutines.launch
 import z21Drive.Z21
 import z21Drive.actions.Z21ActionGetLocoInfo
 import z21Drive.actions.Z21ActionGetSerialNumber
+import z21Drive.actions.Z21ActionLanXTrackPowerOff
+import z21Drive.actions.Z21ActionLanXTrackPowerOn
 import z21Drive.actions.Z21ActionSetLocoDrive
 import z21Drive.broadcasts.BroadcastFlagHandler
 import z21Drive.broadcasts.BroadcastFlags
 import z21Drive.broadcasts.BroadcastTypes
 import z21Drive.broadcasts.Z21Broadcast
 import z21Drive.broadcasts.Z21BroadcastLanXLocoInfo
+import z21Drive.broadcasts.Z21BroadcastLanXTrackPowerOff
+import z21Drive.broadcasts.Z21BroadcastLanXTrackPowerOn
 import z21Drive.broadcasts.Z21BroadcastListener
 import java.net.Inet4Address
 import kotlin.time.Duration.Companion.seconds
@@ -43,7 +47,7 @@ class DrivingControllerImpl(
 
    override val locos = MutableStateFlow<List<Int>>(emptyList())
    override val activeLoco = MutableStateFlow<ActiveLocoState?>(null)
-   override val connected = MutableStateFlow<Boolean>(false)
+   override val trackState = MutableStateFlow<TrackState>(TrackState(false, false))
    private var connectionScope: CoroutineScope? = null
 
    // TODO how to know when I am actually connected?
@@ -68,7 +72,7 @@ class DrivingControllerImpl(
       connectionScope?.launch {
          connectionScope?.cancel()
          z21.shutdown()
-         connected.value = false
+         trackState.update { it.copy(connected = false) }
       }
    }
 
@@ -89,12 +93,22 @@ class DrivingControllerImpl(
       }
    }
 
+   override fun toggleTrackPower(poweredOn: Boolean) {
+      connectionScope?.launch {
+         if (poweredOn) {
+            z21.sendActionToZ21(Z21ActionLanXTrackPowerOn())
+         } else {
+            z21.sendActionToZ21(Z21ActionLanXTrackPowerOff())
+         }
+      }
+   }
+
    val z21broadcastReceiver = object : Z21BroadcastListener {
       override fun onBroadCast(
          type: BroadcastTypes,
          broadcast: Z21Broadcast,
       ) {
-         if (!connected.value) {
+         if (!trackState.value.connected) {
             // onConnected()
          }
 
@@ -120,6 +134,14 @@ class DrivingControllerImpl(
                   }
                }
             }
+
+            is Z21BroadcastLanXTrackPowerOn -> {
+               trackState.update { it.copy(powerOn = true) }
+            }
+
+            is Z21BroadcastLanXTrackPowerOff -> {
+               trackState.update { it.copy(powerOn = false) }
+            }
          }
       }
 
@@ -129,7 +151,7 @@ class DrivingControllerImpl(
    }
 
    private fun onConnected() {
-      connected.value = true
+      trackState.update { it.copy(connected = true) }
 
       // Keepalive job
       connectionScope?.launch() {

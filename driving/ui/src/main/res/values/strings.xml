@@ -2,4 +2,5 @@
 <resources>
     <string name="select_train">Izberi lokomotivo</string>
     <string name="disconnected">Disconnected</string>
+    <string name="track_turned_off">Track turned off</string>
 </resources>

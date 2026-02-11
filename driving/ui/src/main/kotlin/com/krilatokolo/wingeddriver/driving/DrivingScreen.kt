@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.krilatokolo.wingeddriver.driving
 
 import androidx.compose.foundation.layout.Arrangement
@@ -10,10 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,13 +53,12 @@ class DrivingScreen(
    @Composable
    override fun Content(key: DrivingScreenKey) {
       val state = viewModel.uiState.collectAsState().value
-      val setDirection: (Boolean) -> Unit = { viewModel.setDirection(it) }
-      val setSpeed: (Int) -> Unit = { viewModel.setSpeed(it) }
 
       DrivingScreenContent(
          state,
-         setSpeed,
-         setDirection,
+         viewModel::setSpeed,
+         viewModel::setDirection,
+         viewModel::toggleTrackPower,
          { navigator.navigateTo(LocomotivePickerScreenKey) }
       )
    }
@@ -66,8 +69,12 @@ private fun DrivingScreenContent(
    state: DrivingState,
    setSpeed: (Int) -> Unit,
    setDirection: (Boolean) -> Unit,
+   setTrackPower: (Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
 ) {
+   val updatedState = rememberUpdatedState(state)
+   GamepadControl(setSpeed, updatedState::value, setDirection)
+
    Column(
       Modifier
          .safeDrawingPadding()
@@ -75,9 +82,6 @@ private fun DrivingScreenContent(
          .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
    ) {
-      val updatedState = rememberUpdatedState(state)
-      GamepadControl(setSpeed, updatedState::value, setDirection)
-
       Row(
          Modifier
             .height(48.dp)
@@ -85,7 +89,6 @@ private fun DrivingScreenContent(
          horizontalArrangement = Arrangement.spacedBy(16.dp),
          verticalAlignment = Alignment.CenterVertically,
       ) {
-         println("state $state")
          if (!state.connected) {
             Icon(
                painterResource(R.drawable.ic_disconnected),
@@ -95,6 +98,13 @@ private fun DrivingScreenContent(
          }
 
          Spacer(Modifier.weight(1f))
+
+         ToggleButton(
+            state.trackPoweredOn,
+            onCheckedChange = setTrackPower,
+         ) {
+            Icon(painterResource(R.drawable.ic_off), stringResource(R.string.track_turned_off))
+         }
       }
 
       Button(onClick = openLocomotivePicker) {
@@ -216,6 +226,7 @@ private fun DrivingScreenContentPreview() {
          {},
          {},
          {},
+         {},
       )
    }
 }
@@ -232,6 +243,7 @@ private fun DrivingScreenDisconnectedPreview() {
             forward = true,
             connected = false
          ),
+         {},
          {},
          {},
          {},

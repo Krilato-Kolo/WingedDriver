@@ -39,11 +39,18 @@ class DrivingScreenViewModel(
       }
 
       resources.launchWithExceptionReporting {
-         val flow = combine(drivingController.connected, drivingController.activeLoco) { connected, activeLoco ->
+         val flow = combine(drivingController.trackState, drivingController.activeLoco) { trackState, activeLoco ->
             if (activeLoco != null) {
-               DrivingState(activeLoco.id, activeLoco.speed, activeLoco.maxSpeed, activeLoco.forward, connected)
+               DrivingState(
+                  activeLoco.id,
+                  activeLoco.speed,
+                  activeLoco.maxSpeed,
+                  activeLoco.forward,
+                  trackState.connected,
+                  trackState.powerOn
+               )
             } else {
-               DrivingState(connected = connected)
+               DrivingState(connected = trackState.connected, trackPoweredOn = trackState.powerOn)
             }
          }
 
@@ -59,6 +66,10 @@ class DrivingScreenViewModel(
       drivingController.changeDirection(forward)
    }
 
+   fun toggleTrackPower(poweredOn: Boolean) {
+      drivingController.toggleTrackPower(poweredOn)
+   }
+
    override fun onServiceUnregistered() {
       drivingController.disconnect()
       super.onServiceUnregistered()
@@ -71,4 +82,5 @@ data class DrivingState(
    val maxSpeed: Int = 0,
    val forward: Boolean = true,
    val connected: Boolean = false,
+   val trackPoweredOn: Boolean = false,
 )
