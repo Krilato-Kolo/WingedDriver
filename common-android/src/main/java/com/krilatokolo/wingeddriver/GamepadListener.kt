@@ -2,6 +2,7 @@ package com.krilatokolo.wingeddriver
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.lifecycle.compose.LifecycleResumeEffect
 
 @Composable
@@ -12,6 +13,10 @@ fun GamepadListener(
    onButtonReleased: (Int) -> Unit = {},
    onControllerDisconnected: () -> Unit = {},
 ) {
+   if (LocalInspectionMode.current) {
+      return
+   }
+
    val dispatcher = LocalGamepadDispatcher.current
    LifecycleResumeEffect(Unit) {
       dispatcher.currentInstance = GamepadListenerInstance(

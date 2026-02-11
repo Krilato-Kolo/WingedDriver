@@ -63,6 +63,6 @@ class DrivingScreenViewModel(
       drivingController.disconnect()
       super.onServiceUnregistered()
    }
-
-   data class DrivingState(val activeLoco: Int? = null, val speed: Int = 0, val maxSpeed: Int = 0, val forward: Boolean = true)
 }
+
+data class DrivingState(val activeLoco: Int? = null, val speed: Int = 0, val maxSpeed: Int = 0, val forward: Boolean = true)
