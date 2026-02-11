@@ -18,4 +18,6 @@ interface DrivingController {
    fun changeLoco(id: Int)
 
    fun toggleTrackPower(poweredOn: Boolean)
+
+   fun toggleLocoFunction(function: Int, on: Boolean)
 }

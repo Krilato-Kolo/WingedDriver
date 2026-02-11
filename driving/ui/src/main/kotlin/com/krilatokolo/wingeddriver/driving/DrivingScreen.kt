@@ -3,7 +3,9 @@
 package com.krilatokolo.wingeddriver.driving
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -32,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.krilatokolo.wingeddriver.GamepadListener
 import com.krilatokolo.wingeddriver.controller.ControllerPacket
 import com.krilatokolo.wingeddriver.driving.ui.R
@@ -59,6 +66,7 @@ class DrivingScreen(
          viewModel::setSpeed,
          viewModel::setDirection,
          viewModel::toggleTrackPower,
+         viewModel::toggleLocoFunction,
          { navigator.navigateTo(LocomotivePickerScreenKey) }
       )
    }
@@ -70,6 +78,7 @@ private fun DrivingScreenContent(
    setSpeed: (Int) -> Unit,
    setDirection: (Boolean) -> Unit,
    setTrackPower: (Boolean) -> Unit,
+   toggleFunction: (Int, Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
 ) {
    val updatedState = rememberUpdatedState(state)
@@ -115,7 +124,30 @@ private fun DrivingScreenContent(
          )
       }
 
-      Spacer(Modifier.weight(1f))
+      LazyHorizontalGrid(
+         GridCells.Adaptive(96.dp),
+         Modifier
+            .weight(1f)
+            .fillMaxWidth(),
+         horizontalArrangement = Arrangement.spacedBy(8.dp),
+         verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+         items(TOTAL_LOCO_FUNCTIONS, key = { it }) { index ->
+            ToggleButton(
+               state.activeFunctions.contains(index),
+               onCheckedChange = { toggleFunction(index, it) },
+               modifier = Modifier
+                  .wrapContentHeight()
+                  .size(96.dp),
+               contentPadding = PaddingValues.Zero,
+            ) {
+               Text("F${index + 1}", fontSize = 32.sp)
+            }
+         }
+      }
+
+      Box(Modifier.weight(1f))
+
       val buttonText = if (state.forward) "< \uD83D\uDE82" else "\uD83D\uDE82 >"
       Button(onClick = { setDirection(!state.forward) }) {
          Text(
@@ -226,6 +258,7 @@ private fun DrivingScreenContentPreview() {
          {},
          {},
          {},
+         { _, _ -> },
          {},
       )
    }
@@ -246,7 +279,10 @@ private fun DrivingScreenDisconnectedPreview() {
          {},
          {},
          {},
+         { _, _ -> },
          {},
       )
    }
 }
+
+private const val TOTAL_LOCO_FUNCTIONS = 28

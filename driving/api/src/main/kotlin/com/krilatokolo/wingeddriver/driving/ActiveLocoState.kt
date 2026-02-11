@@ -5,4 +5,5 @@ data class ActiveLocoState(
    val speed: Int,
    val forward: Boolean,
    val maxSpeed: Int,
+   val activeFunctions: List<Int>,
 )

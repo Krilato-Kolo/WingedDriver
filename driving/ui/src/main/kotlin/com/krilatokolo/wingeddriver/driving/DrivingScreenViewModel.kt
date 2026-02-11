@@ -47,7 +47,8 @@ class DrivingScreenViewModel(
                   activeLoco.maxSpeed,
                   activeLoco.forward,
                   trackState.connected,
-                  trackState.powerOn
+                  trackState.powerOn,
+                  activeLoco.activeFunctions,
                )
             } else {
                DrivingState(connected = trackState.connected, trackPoweredOn = trackState.powerOn)
@@ -70,6 +71,10 @@ class DrivingScreenViewModel(
       drivingController.toggleTrackPower(poweredOn)
    }
 
+   fun toggleLocoFunction(function: Int, on: Boolean) {
+      drivingController.toggleLocoFunction(function, on)
+   }
+
    override fun onServiceUnregistered() {
       drivingController.disconnect()
       super.onServiceUnregistered()
@@ -83,4 +88,5 @@ data class DrivingState(
    val forward: Boolean = true,
    val connected: Boolean = false,
    val trackPoweredOn: Boolean = false,
+   val activeFunctions: List<Int> = emptyList(),
 )

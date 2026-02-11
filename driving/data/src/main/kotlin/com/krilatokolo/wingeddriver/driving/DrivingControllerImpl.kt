@@ -24,6 +24,7 @@ import z21Drive.actions.Z21ActionGetSerialNumber
 import z21Drive.actions.Z21ActionLanXTrackPowerOff
 import z21Drive.actions.Z21ActionLanXTrackPowerOn
 import z21Drive.actions.Z21ActionSetLocoDrive
+import z21Drive.actions.Z21ActionSetLocoFunction
 import z21Drive.broadcasts.BroadcastFlagHandler
 import z21Drive.broadcasts.BroadcastFlags
 import z21Drive.broadcasts.BroadcastTypes
@@ -103,6 +104,13 @@ class DrivingControllerImpl(
       }
    }
 
+   override fun toggleLocoFunction(function: Int, on: Boolean) {
+      connectionScope?.launch {
+         val activeLocoId = activeLoco.value?.id ?: return@launch
+         z21.sendActionToZ21(Z21ActionSetLocoFunction(activeLocoId, function, on))
+      }
+   }
+
    val z21broadcastReceiver = object : Z21BroadcastListener {
       override fun onBroadCast(
          type: BroadcastTypes,
@@ -124,10 +132,12 @@ class DrivingControllerImpl(
 
                activeLoco.update { activeLoco ->
                   if (activeLoco?.id == broadcast.locoAddress) {
+                     val functionsAsArray = broadcast.functionsAsArray
                      activeLoco.copy(
                         speed = broadcast.speed,
                         maxSpeed = broadcast.speedSteps - 1,
                         forward = broadcast.direction,
+                        activeFunctions = functionsAsArray.indices.filter { functionsAsArray[it] }
                      )
                   } else {
                      activeLoco

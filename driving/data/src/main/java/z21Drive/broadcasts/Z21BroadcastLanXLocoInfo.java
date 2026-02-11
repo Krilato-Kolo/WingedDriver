@@ -254,6 +254,22 @@ public class Z21BroadcastLanXLocoInfo extends Z21Broadcast {
         array[10] = f10On;
         array[11] = f11On;
         array[12] = f12On;
+        array[13] = f13On;
+        array[14] = f14On;
+        array[15] = f15On;
+        array[16] = f16On;
+        array[17] = f17On;
+        array[18] = f18On;
+        array[19] = f19On;
+        array[20] = f20On;
+        array[21] = f21On;
+        array[22] = f22On;
+        array[23] = f23On;
+        array[24] = f24On;
+        array[25] = f25On;
+        array[26] = f26On;
+        array[27] = f27On;
+        array[28] = f28On;
         return array;
     }
 
