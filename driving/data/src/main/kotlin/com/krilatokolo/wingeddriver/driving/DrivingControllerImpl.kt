@@ -87,7 +87,7 @@ class DrivingControllerImpl(
    }
 
    override fun changeLoco(id: Int) {
-      activeLoco.value = ActiveLocoState(id, 0, true, 0)
+      activeLoco.value = ActiveLocoState(id, 0, true, 0, emptyList())
 
       connectionScope?.launch {
          z21.sendActionToZ21(Z21ActionGetLocoInfo(id))
