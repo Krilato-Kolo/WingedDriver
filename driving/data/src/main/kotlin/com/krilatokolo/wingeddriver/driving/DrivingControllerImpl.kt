@@ -43,9 +43,10 @@ class DrivingControllerImpl(
 
    override val locos = MutableStateFlow<List<Int>>(emptyList())
    override val activeLoco = MutableStateFlow<ActiveLocoState?>(null)
+   override val connected = MutableStateFlow<Boolean>(false)
    private var connectionScope: CoroutineScope? = null
 
-   private var connected = false
+   // TODO how to know when I am actually connected?
 
    override suspend fun connect() {
       delay(1.seconds)
@@ -67,14 +68,13 @@ class DrivingControllerImpl(
       connectionScope?.launch {
          connectionScope?.cancel()
          z21.shutdown()
-         connected = false
+         connected.value = false
       }
    }
 
    @Suppress("MagicNumber") // TMP
    override fun changeSpeed(newSpeed: Int) {
       activeLoco.update { it?.copy(speed = newSpeed.coerceIn(0..it.maxSpeed)) }
-      println("change speed $newSpeed $activeLoco.value")
    }
 
    override fun changeDirection(forward: Boolean) {
@@ -94,7 +94,7 @@ class DrivingControllerImpl(
          type: BroadcastTypes,
          broadcast: Z21Broadcast,
       ) {
-         if (!connected) {
+         if (!connected.value) {
             // onConnected()
          }
 
@@ -129,7 +129,7 @@ class DrivingControllerImpl(
    }
 
    private fun onConnected() {
-      connected = true
+      connected.value = true
 
       // Keepalive job
       connectionScope?.launch() {

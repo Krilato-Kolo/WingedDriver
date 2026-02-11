@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 interface DrivingController {
    val locos: Flow<List<Int>>
    val activeLoco: Flow<ActiveLocoState?>
+   val connected: Flow<Boolean>
 
    suspend fun connect()
 

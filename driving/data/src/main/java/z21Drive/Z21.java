@@ -98,7 +98,6 @@ public class Z21 implements Runnable {
      */
     @Override
     public void run() {
-        System.out.println("run " + exit);
         while (!exit) {
             try {
                 DatagramPacket packet = new DatagramPacket(new byte[510], 510);

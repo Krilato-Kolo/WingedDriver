@@ -2,12 +2,16 @@ package com.krilatokolo.wingeddriver.driving
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,9 +21,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.krilatokolo.wingeddriver.GamepadListener
 import com.krilatokolo.wingeddriver.controller.ControllerPacket
@@ -69,8 +76,26 @@ private fun DrivingScreenContent(
       verticalArrangement = Arrangement.spacedBy(16.dp),
    ) {
       val updatedState = rememberUpdatedState(state)
-
       GamepadControl(setSpeed, updatedState::value, setDirection)
+
+      Row(
+         Modifier
+            .height(48.dp)
+            .fillMaxWidth(),
+         horizontalArrangement = Arrangement.spacedBy(16.dp),
+         verticalAlignment = Alignment.CenterVertically,
+      ) {
+         println("state $state")
+         if (!state.connected) {
+            Icon(
+               painterResource(R.drawable.ic_disconnected),
+               stringResource(R.string.disconnected),
+               tint = MaterialTheme.colorScheme.error
+            )
+         }
+
+         Spacer(Modifier.weight(1f))
+      }
 
       Button(onClick = openLocomotivePicker) {
          Text(
@@ -186,6 +211,26 @@ private fun DrivingScreenContentPreview() {
             speed = 300,
             maxSpeed = 128,
             forward = true,
+            connected = true
+         ),
+         {},
+         {},
+         {},
+      )
+   }
+}
+
+@Preview
+@Composable
+private fun DrivingScreenDisconnectedPreview() {
+   PreviewTheme {
+      DrivingScreenContent(
+         DrivingState(
+            activeLoco = 10,
+            speed = 300,
+            maxSpeed = 128,
+            forward = true,
+            connected = false
          ),
          {},
          {},

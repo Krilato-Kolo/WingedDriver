@@ -7,7 +7,7 @@ import dev.zacsweers.metro.Inject
 import dispatch.core.withDefault
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import si.inova.kotlinova.core.flow.collectInto
 import si.inova.kotlinova.core.outcome.CoroutineResourceManager
 import si.inova.kotlinova.navigation.services.ContributesScopedService
@@ -39,11 +39,11 @@ class DrivingScreenViewModel(
       }
 
       resources.launchWithExceptionReporting {
-         val flow = drivingController.activeLoco.map { activeLoco ->
+         val flow = combine(drivingController.connected, drivingController.activeLoco) { connected, activeLoco ->
             if (activeLoco != null) {
-               DrivingState(activeLoco.id, activeLoco.speed, activeLoco.maxSpeed, activeLoco.forward)
+               DrivingState(activeLoco.id, activeLoco.speed, activeLoco.maxSpeed, activeLoco.forward, connected)
             } else {
-               DrivingState()
+               DrivingState(connected = connected)
             }
          }
 
@@ -65,4 +65,10 @@ class DrivingScreenViewModel(
    }
 }
 
-data class DrivingState(val activeLoco: Int? = null, val speed: Int = 0, val maxSpeed: Int = 0, val forward: Boolean = true)
+data class DrivingState(
+   val activeLoco: Int? = null,
+   val speed: Int = 0,
+   val maxSpeed: Int = 0,
+   val forward: Boolean = true,
+   val connected: Boolean = false,
+)
