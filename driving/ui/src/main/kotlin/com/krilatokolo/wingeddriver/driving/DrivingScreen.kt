@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -164,7 +165,9 @@ private fun DrivingScreenContent(
          onValueChange = {
             setSpeed((it * state.maxSpeed).roundToInt())
          },
-         modifier = Modifier.fillMaxWidth()
+         modifier = Modifier
+            .fillMaxWidth()
+            .systemGestureExclusion()
       )
    }
 }
