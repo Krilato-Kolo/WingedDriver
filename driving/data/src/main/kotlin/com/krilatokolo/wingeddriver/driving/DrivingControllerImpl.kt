@@ -52,7 +52,7 @@ class DrivingControllerImpl(
 
    override val locos = MutableStateFlow<List<Int>>(emptyList())
    override val activeLoco = MutableStateFlow<ActiveLocoState?>(null)
-   override val trackState = MutableStateFlow<TrackState>(TrackState(false, false))
+   override val trackState = MutableStateFlow<TrackState>(TrackState(false, true))
    private var connectionScope: CoroutineScope? = null
    private var killConnectionJob: Job? = null
 
