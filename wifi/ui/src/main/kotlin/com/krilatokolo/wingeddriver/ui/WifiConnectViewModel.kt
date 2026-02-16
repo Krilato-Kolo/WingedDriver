@@ -10,6 +10,7 @@ import com.krilatokolo.wingeddriver.wifi.LocalWifiConnection
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import si.inova.kotlinova.core.exceptions.UnknownCauseException
@@ -64,6 +65,11 @@ class WifiConnectViewModel(
       val state = _state.value.data ?: return
 
       resources.launchWithExceptionReporting {
+         if (localWifiConnection.getCurrentConnection().first() != null) {
+            navigator.navigateTo(DrivingScreenKey)
+            return@launchWithExceptionReporting
+         }
+
          try {
             localWifiConnection.connect(state.ssid, state.password)
          } catch (e: CancellationException) {
