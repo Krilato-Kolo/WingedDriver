@@ -67,6 +67,7 @@ class DrivingControllerImpl(
 
       z21.start(network, ip)
       BroadcastFlagHandler.setReceive(BroadcastFlags.GLOBAL_BROADCASTS, true)
+      BroadcastFlagHandler.setReceive(BroadcastFlags.RECEIVE_ALL_LOCOS, true)
       connectionScope = CoroutineScope(parentScope.coroutineContext + SupervisorJob())
 
       onConnectionStarted()
@@ -124,7 +125,6 @@ class DrivingControllerImpl(
 
    val z21ResponseListener = object : Z21ResponseListener {
       override fun responseReceived(type: ResponseTypes, response: Z21Response) {
-         println("ORC $response")
          killConnectionJob?.cancel()
          trackState.update { it.copy(connected = true) }
       }
