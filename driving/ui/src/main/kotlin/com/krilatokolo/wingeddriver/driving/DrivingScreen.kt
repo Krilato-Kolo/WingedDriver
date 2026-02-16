@@ -109,8 +109,8 @@ private fun DrivingScreenContent(
          Spacer(Modifier.weight(1f))
 
          ToggleButton(
-            state.trackPoweredOn,
-            onCheckedChange = setTrackPower,
+            !state.trackPoweredOn,
+            onCheckedChange = { setTrackPower(!it) },
          ) {
             Icon(painterResource(R.drawable.ic_off), stringResource(R.string.track_turned_off))
          }
@@ -141,7 +141,7 @@ private fun DrivingScreenContent(
                   .size(96.dp),
                contentPadding = PaddingValues.Zero,
             ) {
-               Text("F${index + 1}", fontSize = 32.sp)
+               Text("F$index", fontSize = 32.sp)
             }
          }
       }
