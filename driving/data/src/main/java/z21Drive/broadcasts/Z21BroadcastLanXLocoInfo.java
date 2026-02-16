@@ -240,7 +240,7 @@ public class Z21BroadcastLanXLocoInfo extends Z21Broadcast {
      * @return Array of function values.
      */
     public boolean[] getFunctionsAsArray() {
-        boolean[] array = new boolean[13];
+        boolean[] array = new boolean[29];
         array[0] = f0On;
         array[1] = f1On;
         array[2] = f2On;

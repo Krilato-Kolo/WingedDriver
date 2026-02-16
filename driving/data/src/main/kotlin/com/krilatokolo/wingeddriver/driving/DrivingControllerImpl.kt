@@ -10,6 +10,7 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dispatch.core.DefaultCoroutineScope
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -33,6 +34,9 @@ import z21Drive.broadcasts.Z21BroadcastLanXLocoInfo
 import z21Drive.broadcasts.Z21BroadcastLanXTrackPowerOff
 import z21Drive.broadcasts.Z21BroadcastLanXTrackPowerOn
 import z21Drive.broadcasts.Z21BroadcastListener
+import z21Drive.responses.ResponseTypes
+import z21Drive.responses.Z21Response
+import z21Drive.responses.Z21ResponseListener
 import java.net.Inet4Address
 import kotlin.time.Duration.Companion.seconds
 
@@ -50,8 +54,7 @@ class DrivingControllerImpl(
    override val activeLoco = MutableStateFlow<ActiveLocoState?>(null)
    override val trackState = MutableStateFlow<TrackState>(TrackState(false, false))
    private var connectionScope: CoroutineScope? = null
-
-   // TODO how to know when I am actually connected?
+   private var killConnectionJob: Job? = null
 
    override suspend fun connect() {
       delay(1.seconds)
@@ -66,7 +69,7 @@ class DrivingControllerImpl(
       BroadcastFlagHandler.setReceive(BroadcastFlags.GLOBAL_BROADCASTS, true)
       connectionScope = CoroutineScope(parentScope.coroutineContext + SupervisorJob())
 
-      onConnected()
+      onConnectionStarted()
    }
 
    override fun disconnect() {
@@ -111,14 +114,33 @@ class DrivingControllerImpl(
       }
    }
 
+   private fun startTimeoutJob() {
+      killConnectionJob?.cancel()
+      killConnectionJob = connectionScope?.launch {
+         delay(2.seconds)
+         trackState.update { it.copy(connected = false) }
+      }
+   }
+
+   val z21ResponseListener = object : Z21ResponseListener {
+      override fun responseReceived(type: ResponseTypes, response: Z21Response) {
+         println("ORC $response")
+         killConnectionJob?.cancel()
+         trackState.update { it.copy(connected = true) }
+      }
+
+      override fun getListenerTypes(): Array<out ResponseTypes?> {
+         return ResponseTypes.entries.toTypedArray()
+      }
+   }
+
    val z21broadcastReceiver = object : Z21BroadcastListener {
       override fun onBroadCast(
          type: BroadcastTypes,
          broadcast: Z21Broadcast,
       ) {
-         if (!trackState.value.connected) {
-            // onConnected()
-         }
+         killConnectionJob?.cancel()
+         trackState.update { it.copy(connected = true) }
 
          when (broadcast) {
             is Z21BroadcastLanXLocoInfo -> {
@@ -160,14 +182,13 @@ class DrivingControllerImpl(
       }
    }
 
-   private fun onConnected() {
-      trackState.update { it.copy(connected = true) }
-
+   private fun onConnectionStarted() {
       // Keepalive job
       connectionScope?.launch() {
          BroadcastFlagHandler.setReceive(BroadcastFlags.GLOBAL_BROADCASTS, true)
 
          while (isActive) {
+            startTimeoutJob()
             z21.sendActionToZ21(Z21ActionGetSerialNumber())
 
             delay(30.seconds)
@@ -182,6 +203,7 @@ class DrivingControllerImpl(
          while (isActive) {
             activeLoco.value?.let { activeLoco ->
                if (lastSpeed != activeLoco.speed || lastDirection != activeLoco.forward) {
+                  startTimeoutJob()
                   z21.sendActionToZ21(
                      Z21ActionSetLocoDrive(
                         activeLoco.id,
@@ -205,6 +227,7 @@ class DrivingControllerImpl(
    }
 
    init {
+      z21.addResponseListener(z21ResponseListener)
       z21.addBroadcastListener(z21broadcastReceiver)
    }
 }
