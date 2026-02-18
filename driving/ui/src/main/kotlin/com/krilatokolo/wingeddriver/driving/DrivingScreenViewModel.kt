@@ -87,6 +87,6 @@ data class DrivingState(
    val maxSpeed: Int = 0,
    val forward: Boolean = true,
    val connected: Boolean = false,
-   val trackPoweredOn: Boolean = false,
+   val trackPoweredOn: Boolean = true,
    val activeFunctions: List<Int> = emptyList(),
 )

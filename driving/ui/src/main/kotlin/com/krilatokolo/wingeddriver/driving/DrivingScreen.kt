@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -112,6 +113,9 @@ private fun DrivingScreenContent(
          ToggleButton(
             !state.trackPoweredOn,
             onCheckedChange = { setTrackPower(!it) },
+            colors = ToggleButtonDefaults.toggleButtonColors(
+               checkedContainerColor = MaterialTheme.colorScheme.error
+            )
          ) {
             Icon(painterResource(R.drawable.ic_off), stringResource(R.string.track_turned_off))
          }
@@ -256,7 +260,7 @@ private fun DrivingScreenContentPreview() {
             speed = 300,
             maxSpeed = 128,
             forward = true,
-            connected = true
+            connected = true,
          ),
          {},
          {},
@@ -278,6 +282,28 @@ private fun DrivingScreenDisconnectedPreview() {
             maxSpeed = 128,
             forward = true,
             connected = false
+         ),
+         {},
+         {},
+         {},
+         { _, _ -> },
+         {},
+      )
+   }
+}
+
+@Preview
+@Composable
+private fun DrivingTrackUnpoweredPreview() {
+   PreviewTheme {
+      DrivingScreenContent(
+         DrivingState(
+            activeLoco = 10,
+            speed = 300,
+            maxSpeed = 128,
+            forward = true,
+            connected = true,
+            trackPoweredOn = false,
          ),
          {},
          {},
