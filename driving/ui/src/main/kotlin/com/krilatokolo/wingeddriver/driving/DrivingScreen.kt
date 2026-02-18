@@ -4,21 +4,27 @@ package com.krilatokolo.wingeddriver.driving
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +32,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.VerticalSlider
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -83,6 +91,24 @@ private fun DrivingScreenContent(
    toggleFunction: (Int, Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
 ) {
+   BoxWithConstraints {
+      if (maxWidth > maxHeight) {
+         DrivingContentLandscape(state, setSpeed, setDirection, setTrackPower, openLocomotivePicker, toggleFunction)
+      } else {
+         DrivingContentPortrait(state, setSpeed, setDirection, setTrackPower, openLocomotivePicker, toggleFunction)
+      }
+   }
+}
+
+@Composable
+private fun DrivingContentPortrait(
+   state: DrivingState,
+   setSpeed: (Int) -> Unit,
+   setDirection: (Boolean) -> Unit,
+   setTrackPower: (Boolean) -> Unit,
+   openLocomotivePicker: () -> Unit,
+   toggleFunction: (Int, Boolean) -> Unit,
+) {
    val updatedState = rememberUpdatedState(state)
    GamepadControl(setSpeed, updatedState::value, setDirection)
 
@@ -137,18 +163,7 @@ private fun DrivingScreenContent(
          horizontalArrangement = Arrangement.spacedBy(8.dp),
          verticalArrangement = Arrangement.spacedBy(8.dp),
       ) {
-         items(TOTAL_LOCO_FUNCTIONS, key = { it }) { index ->
-            ToggleButton(
-               state.activeFunctions.contains(index),
-               onCheckedChange = { toggleFunction(index, it) },
-               modifier = Modifier
-                  .wrapContentHeight()
-                  .size(96.dp),
-               contentPadding = PaddingValues.Zero,
-            ) {
-               Text("F$index", fontSize = 32.sp)
-            }
-         }
+         locoFunctions(state, toggleFunction)
       }
 
       Box(Modifier.weight(1f))
@@ -173,6 +188,126 @@ private fun DrivingScreenContent(
             .fillMaxWidth()
             .systemGestureExclusion()
       )
+   }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DrivingContentLandscape(
+   state: DrivingState,
+   setSpeed: (Int) -> Unit,
+   setDirection: (Boolean) -> Unit,
+   setTrackPower: (Boolean) -> Unit,
+   openLocomotivePicker: () -> Unit,
+   toggleFunction: (Int, Boolean) -> Unit,
+) {
+   val updatedState = rememberUpdatedState(state)
+   GamepadControl(setSpeed, updatedState::value, setDirection)
+
+   Row(
+      Modifier
+         .safeDrawingPadding()
+         .fillMaxSize()
+         .padding(16.dp),
+      horizontalArrangement = Arrangement.spacedBy(16.dp),
+   ) {
+      Column(
+         Modifier
+            .width(48.dp)
+            .fillMaxHeight(),
+         verticalArrangement = Arrangement.spacedBy(16.dp),
+         horizontalAlignment = Alignment.CenterHorizontally,
+      ) {
+         ToggleButton(
+            !state.trackPoweredOn,
+            onCheckedChange = { setTrackPower(!it) },
+            colors = ToggleButtonDefaults.toggleButtonColors(
+               checkedContainerColor = MaterialTheme.colorScheme.error
+            )
+         ) {
+            Icon(painterResource(R.drawable.ic_off), stringResource(R.string.track_turned_off))
+         }
+
+         Spacer(Modifier.weight(1f))
+
+         if (!state.connected) {
+            Icon(
+               painterResource(R.drawable.ic_disconnected),
+               stringResource(R.string.disconnected),
+               tint = MaterialTheme.colorScheme.error
+            )
+         }
+      }
+
+      Button(onClick = openLocomotivePicker) {
+         Text(
+            state.activeLoco?.toString().orEmpty(),
+            Modifier
+               .fillMaxHeight()
+               .wrapContentHeight(),
+            textAlign = TextAlign.Center,
+         )
+      }
+
+      LazyVerticalGrid(
+         GridCells.Adaptive(96.dp),
+         Modifier
+            .weight(1f)
+            .fillMaxHeight(),
+         horizontalArrangement = Arrangement.spacedBy(8.dp),
+         verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+         locoFunctions(state, toggleFunction)
+      }
+
+      Box(Modifier.weight(1f))
+
+      val buttonText = if (state.forward) "/\\\n\uD83D\uDE82" else "\uD83D\uDE82\n\\/"
+      Button(onClick = { setDirection(!state.forward) }) {
+         Text(
+            buttonText,
+            Modifier
+               .fillMaxHeight()
+               .wrapContentHeight(),
+            textAlign = TextAlign.Center
+         )
+      }
+
+      val maxSpeedAtLeastOne = state.maxSpeed.coerceAtLeast(1)
+      val sliderState = rememberSliderState(
+         state.speed / maxSpeedAtLeastOne.toFloat(),
+         steps = maxSpeedAtLeastOne,
+      )
+
+      sliderState.onValueChange = {
+         setSpeed((it * state.maxSpeed).roundToInt())
+      }
+      VerticalSlider(
+         sliderState,
+         modifier = Modifier
+            .systemGestureExclusion()
+            .fillMaxHeight()
+            .padding(end = 16.dp),
+         reverseDirection = true
+      )
+   }
+}
+
+private fun LazyGridScope.locoFunctions(
+   state: DrivingState,
+   toggleFunction: (Int, Boolean) -> Unit,
+) {
+   items(TOTAL_LOCO_FUNCTIONS, key = { it }) { index ->
+      ToggleButton(
+         state.activeFunctions.contains(index),
+         onCheckedChange = { toggleFunction(index, it) },
+         modifier = Modifier
+            .wrapContentHeight()
+            .size(96.dp),
+         contentPadding = PaddingValues.Zero,
+      ) {
+         Text("F$index", fontSize = 32.sp)
+      }
    }
 }
 
@@ -257,7 +392,7 @@ private fun DrivingScreenContentPreview() {
       DrivingScreenContent(
          DrivingState(
             activeLoco = 10,
-            speed = 300,
+            speed = 30,
             maxSpeed = 128,
             forward = true,
             connected = true,
@@ -278,7 +413,7 @@ private fun DrivingScreenDisconnectedPreview() {
       DrivingScreenContent(
          DrivingState(
             activeLoco = 10,
-            speed = 300,
+            speed = 30,
             maxSpeed = 128,
             forward = true,
             connected = false
@@ -299,7 +434,7 @@ private fun DrivingTrackUnpoweredPreview() {
       DrivingScreenContent(
          DrivingState(
             activeLoco = 10,
-            speed = 300,
+            speed = 30,
             maxSpeed = 128,
             forward = true,
             connected = true,
