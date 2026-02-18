@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_name">Ime WIFI omrežja</string>
+    <string name="network_password">Geslo</string>
+    <string name="connect">Poveži</string>
+    <string name="skip">Preskoči</string>
+</resources>

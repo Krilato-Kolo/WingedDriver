@@ -96,6 +96,10 @@ android {
          signingConfig = signingConfigs.getByName("release")
       }
    }
+
+   androidResources {
+      generateLocaleConfig = true
+   }
 }
 
 androidComponents {

@@ -13,11 +13,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.krilatokolo.wingeddriver.navigation.keys.DrivingScreenKey
 import com.krilatokolo.wingeddriver.navigation.keys.WifiConnectScreenKey
 import com.krilatokolo.wingeddriver.ui.components.ProgressErrorSuccessScaffold
+import com.krilatokolo.wingeddriver.wifi.ui.R
 import si.inova.kotlinova.compose.flow.collectAsStateWithLifecycleAndBlinkingPrevention
 import si.inova.kotlinova.navigation.instructions.navigateTo
 import si.inova.kotlinova.navigation.navigator.Navigator
@@ -44,23 +46,23 @@ class WifiConnectScreen(
             TextField(
                state.ssid,
                onValueChange = viewModel::setSsid,
-               placeholder = { Text("Network Name") },
+               label = { Text(stringResource(R.string.network_name)) },
                modifier = Modifier.fillMaxWidth()
             )
             TextField(
                state.password,
                onValueChange = viewModel::setPassword,
-               placeholder = { Text("Network Password") },
+               label = { Text(stringResource(R.string.network_password)) },
                visualTransformation = PasswordVisualTransformation(),
                modifier = Modifier.fillMaxWidth()
             )
 
             Button(onClick = { viewModel.connect() }) {
-               Text("Connect")
+               Text(stringResource(R.string.connect))
             }
 
             Button(onClick = { navigator.navigateTo(DrivingScreenKey) }) {
-               Text("Preskoči")
+               Text(stringResource(R.string.skip))
             }
          }
       }

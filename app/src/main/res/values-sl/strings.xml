@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Krilati Voznik</string>
+
+    <string name="grant">Dovoli</string>
+    <string name="open_settings">Odpri nastavitve</string>
+    <string name="notifications_permission_title">Obvestila</string>
+    <string name="notification_permission_description">Potrebno za javljanje napak</string>
+    <string name="continue_to_the_app">Nadaljuj</string>
+    <string name="onboarding_title">Dobrodošel v Krilatem vozniku!</string>
+</resources>

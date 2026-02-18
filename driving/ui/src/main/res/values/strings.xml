@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="select_train">Izberi lokomotivo</string>
+    <string name="select_train">Select locomotive</string>
     <string name="disconnected">Disconnected</string>
     <string name="track_turned_off">Track turned off</string>
 </resources>

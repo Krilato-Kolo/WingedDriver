@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_name">Network Name</string>
+    <string name="network_password">Network Password</string>
+    <string name="connect">Connect</string>
+    <string name="skip">Skip</string>
+</resources>
