@@ -1,4 +1,12 @@
-# Readme for the application
+# Winged Driver
+
+Custom Android app for driving trains through Z21 interface.
+
+This app uses Android's ConnectivityManager to connect to the Wi-Fi network directly - only the app is connected to the train
+control Wi-Fi network, so the rest of the phone can still use mobile data
+(since these networks are mostly without the internet access).
+
+# Contributing
 
 ## Checking out project
 
