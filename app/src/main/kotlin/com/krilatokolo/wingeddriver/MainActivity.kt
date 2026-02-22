@@ -1,6 +1,9 @@
 package com.krilatokolo.wingeddriver
 
 import android.os.Bundle
+import android.view.InputDevice
+import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -61,6 +64,8 @@ class MainActivity : ComponentActivity(), UsbDriverListener {
    private var lastButtonFlags = 0
    private var lastLeftTrigger = 0f
    private var lastRightTrigger = 0f
+   private var lastHatX = 0f
+   private var lastHatY = 0f
    private var repeaterJob: Job? = null
    private var repeaterButton: Int? = null
 
@@ -86,6 +91,11 @@ class MainActivity : ComponentActivity(), UsbDriverListener {
 
       usbDriverService.listener = this
       usbDriverService.onCreate()
+   }
+
+   override fun onDestroy() {
+      usbDriverService.onDestroy()
+      super.onDestroy()
    }
 
    override fun onStart() {
@@ -193,22 +203,30 @@ class MainActivity : ComponentActivity(), UsbDriverListener {
          if (masked != previousMasked) {
             runOnUiThread {
                if (masked == 0) {
-                  controllerDispatcher.currentInstance?.onButtonReleased(button)
-
-                  if (repeaterButton == button) {
-                     repeaterJob?.cancel()
-                  }
+                  onControllerButtonReleased(button)
                } else {
-                  if (button in REPEAT_BUTTONS) {
-                     runWithRepeat(button) {
-                        controllerDispatcher.currentInstance?.onButtonPressed(button)
-                     }
-                  } else {
-                     controllerDispatcher.currentInstance?.onButtonPressed(button)
-                  }
+                  onControllerButtonPressed(button)
                }
             }
          }
+      }
+   }
+
+   private fun onControllerButtonPressed(button: Int) {
+      if (button in REPEAT_BUTTONS) {
+         runWithRepeat(button) {
+            controllerDispatcher.currentInstance?.onButtonPressed(button)
+         }
+      } else {
+         controllerDispatcher.currentInstance?.onButtonPressed(button)
+      }
+   }
+
+   private fun onControllerButtonReleased(button: Int) {
+      controllerDispatcher.currentInstance?.onButtonReleased(button)
+
+      if (repeaterButton == button) {
+         repeaterJob?.cancel()
       }
    }
 
@@ -233,6 +251,95 @@ class MainActivity : ComponentActivity(), UsbDriverListener {
    }
 
    override fun deviceAdded(controller: AbstractController?) {
+   }
+
+   override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+      val button = keycodeToControllerPacketButton(keyCode) ?: return false
+      if (event.repeatCount == 0) {
+         onControllerButtonPressed(button)
+      }
+      return true
+   }
+
+   override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+      val button = keycodeToControllerPacketButton(keyCode) ?: return false
+      if (event.repeatCount == 0) {
+         onControllerButtonReleased(button)
+      }
+      return true
+   }
+
+   @Suppress("CognitiveComplexMethod", "MagicNumber") // Not that complex, just a lot of copy paste
+   override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+      if (event.isFromSource(InputDevice.SOURCE_JOYSTICK)) {
+         controllerDispatcher.currentInstance?.let {
+            val leftTrigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER)
+            val rightTrigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER)
+            val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
+            val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+
+            if (leftTrigger != lastLeftTrigger) {
+               it.onLeftTriggerUpdate(leftTrigger)
+               lastLeftTrigger = leftTrigger
+            }
+            if (rightTrigger != lastRightTrigger) {
+               it.onRightTriggerUpdate(rightTrigger)
+               lastRightTrigger = rightTrigger
+            }
+            if (lastHatX != hatX) {
+               if (lastHatX > 0.5f) {
+                  onControllerButtonReleased(ControllerPacket.LEFT_FLAG)
+               }
+               if (lastHatX < -0.5f) {
+                  onControllerButtonReleased(ControllerPacket.RIGHT_FLAG)
+               }
+
+               if (hatX > 0.5f) {
+                  onControllerButtonPressed(ControllerPacket.LEFT_FLAG)
+               }
+               if (hatX < -0.5f) {
+                  onControllerButtonPressed(ControllerPacket.RIGHT_FLAG)
+               }
+               lastHatX = hatX
+            }
+            if (lastHatY != hatY) {
+               if (lastHatY > 0.5f) {
+                  onControllerButtonReleased(ControllerPacket.UP_FLAG)
+               }
+               if (lastHatY < -0.5f) {
+                  onControllerButtonReleased(ControllerPacket.DOWN_FLAG)
+               }
+
+               if (hatY > 0.5f) {
+                  onControllerButtonPressed(ControllerPacket.UP_FLAG)
+               }
+               if (hatY < -0.5f) {
+                  onControllerButtonPressed(ControllerPacket.DOWN_FLAG)
+               }
+               lastHatY = hatY
+            }
+         }
+
+         return true
+      }
+
+      return false
+   }
+
+   private fun keycodeToControllerPacketButton(keycode: Int): Int? {
+      return when (keycode) {
+         KeyEvent.KEYCODE_BUTTON_A -> ControllerPacket.A_FLAG
+         KeyEvent.KEYCODE_BUTTON_B -> ControllerPacket.B_FLAG
+         KeyEvent.KEYCODE_BUTTON_X -> ControllerPacket.X_FLAG
+         KeyEvent.KEYCODE_BUTTON_Y -> ControllerPacket.Y_FLAG
+         KeyEvent.KEYCODE_BUTTON_L1 -> ControllerPacket.LB_FLAG
+         KeyEvent.KEYCODE_BUTTON_R1 -> ControllerPacket.RB_FLAG
+         KeyEvent.KEYCODE_BUTTON_START -> ControllerPacket.PLAY_FLAG
+         KeyEvent.KEYCODE_BUTTON_SELECT -> ControllerPacket.BACK_FLAG
+         KeyEvent.KEYCODE_BUTTON_THUMBL -> ControllerPacket.LS_CLK_FLAG
+         KeyEvent.KEYCODE_BUTTON_THUMBR -> ControllerPacket.RS_CLK_FLAG
+         else -> null
+      }
    }
 
    private inner class ViewModelFactory : ViewModelProvider.Factory {
