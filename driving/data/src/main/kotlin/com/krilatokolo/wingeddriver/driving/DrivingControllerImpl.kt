@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import z21Drive.Z21
 import z21Drive.actions.Z21ActionGetLocoInfo
 import z21Drive.actions.Z21ActionGetSerialNumber
+import z21Drive.actions.Z21ActionLanSetBroadcastFlags
 import z21Drive.actions.Z21ActionLanXTrackPowerOff
 import z21Drive.actions.Z21ActionLanXTrackPowerOn
 import z21Drive.actions.Z21ActionSetLocoDrive
@@ -31,6 +32,7 @@ import z21Drive.broadcasts.BroadcastFlags
 import z21Drive.broadcasts.BroadcastTypes
 import z21Drive.broadcasts.Z21Broadcast
 import z21Drive.broadcasts.Z21BroadcastLanXLocoInfo
+import z21Drive.broadcasts.Z21BroadcastLanXShortCircuit
 import z21Drive.broadcasts.Z21BroadcastLanXTrackPowerOff
 import z21Drive.broadcasts.Z21BroadcastLanXTrackPowerOn
 import z21Drive.broadcasts.Z21BroadcastListener
@@ -169,6 +171,10 @@ class DrivingControllerImpl(
 
             is Z21BroadcastLanXTrackPowerOn -> {
                trackState.update { it.copy(powerOn = true) }
+            }
+
+            is Z21BroadcastLanXShortCircuit -> {
+               trackState.update { it.copy(powerOn = false) }
             }
 
             is Z21BroadcastLanXTrackPowerOff -> {
