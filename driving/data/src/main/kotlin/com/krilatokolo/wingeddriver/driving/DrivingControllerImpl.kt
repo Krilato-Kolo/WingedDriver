@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import z21Drive.Z21
 import z21Drive.actions.Z21ActionGetLocoInfo
 import z21Drive.actions.Z21ActionGetSerialNumber
-import z21Drive.actions.Z21ActionLanSetBroadcastFlags
 import z21Drive.actions.Z21ActionLanXTrackPowerOff
 import z21Drive.actions.Z21ActionLanXTrackPowerOn
 import z21Drive.actions.Z21ActionSetLocoDrive
@@ -69,7 +68,11 @@ class DrivingControllerImpl(
 
       z21.start(network, ip)
       BroadcastFlagHandler.setReceive(BroadcastFlags.GLOBAL_BROADCASTS, true)
-      BroadcastFlagHandler.setReceive(BroadcastFlags.RECEIVE_ALL_LOCOS, true)
+
+      val activeLoco = activeLoco.value
+      if (activeLoco != null) {
+         z21.sendActionToZ21(Z21ActionGetLocoInfo(activeLoco.id))
+      }
       connectionScope = CoroutineScope(parentScope.coroutineContext + SupervisorJob())
 
       onConnectionStarted()
