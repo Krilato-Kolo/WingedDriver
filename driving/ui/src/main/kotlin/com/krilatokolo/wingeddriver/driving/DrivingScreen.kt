@@ -2,8 +2,12 @@
 
 package com.krilatokolo.wingeddriver.driving
 
+import android.os.VibrationEffect
+import android.os.Vibrator
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,20 +39,27 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.VerticalSlider
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.getSystemService
 import com.krilatokolo.wingeddriver.GamepadListener
 import com.krilatokolo.wingeddriver.controller.ControllerPacket
 import com.krilatokolo.wingeddriver.driving.ui.R
@@ -60,6 +71,10 @@ import si.inova.kotlinova.navigation.instructions.navigateTo
 import si.inova.kotlinova.navigation.navigator.Navigator
 import si.inova.kotlinova.navigation.screens.InjectNavigationScreen
 import si.inova.kotlinova.navigation.screens.Screen
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.sin
 
 @InjectNavigationScreen
 class DrivingScreen(
@@ -165,7 +180,17 @@ private fun DrivingContentPortrait(
          locoFunctions(state, toggleFunction)
       }
 
-      Box(Modifier.weight(1f))
+      val updatedSpeed by rememberUpdatedState(state.speed)
+
+      Jogwheel(
+         currentSpeed = { updatedSpeed },
+         bumpSpeed = {
+            setSpeed(updatedSpeed + it * JOGWHEEL_SENSITIVITY)
+         },
+         Modifier
+            .weight(1f)
+            .fillMaxWidth()
+      )
 
       val buttonText = if (state.forward) "< \uD83D\uDE82" else "\uD83D\uDE82 >"
       Button(onClick = { setDirection(!state.forward) }) {
@@ -259,7 +284,18 @@ private fun DrivingContentLandscape(
          locoFunctions(state, toggleFunction)
       }
 
-      Box(Modifier.weight(1f))
+      val updatedSpeed by rememberUpdatedState(state.speed)
+      Jogwheel(
+         currentSpeed = { updatedSpeed },
+         bumpSpeed = {
+            setSpeed(updatedSpeed + it * JOGWHEEL_SENSITIVITY)
+         },
+         Modifier
+            .weight(1f)
+            .fillMaxHeight()
+      )
+
+      println("Speed ${state.speed}")
 
       val buttonText = if (state.forward) "/\\\n\uD83D\uDE82" else "\uD83D\uDE82\n\\/"
       Button(onClick = { setDirection(!state.forward) }) {
@@ -309,6 +345,94 @@ private fun LazyGridScope.locoFunctions(
          contentPadding = PaddingValues.Zero,
       ) {
          Text("F$index", fontSize = 32.sp)
+      }
+   }
+}
+
+@Composable
+private fun Jogwheel(currentSpeed: () -> Float, bumpSpeed: (Float) -> Unit, modifier: Modifier = Modifier) {
+   val color = MaterialTheme.colorScheme.onSurface
+
+   var rotation by remember { mutableDoubleStateOf(0.0) }
+
+   val vibrator = LocalContext.current.getSystemService<Vibrator>()!!
+
+   fun updateRotation(diff: Double) {
+      val newRotation = rotation + diff
+      val prevSection = (rotation / CLICK_SENSITIVITY).toInt()
+      val newSection = (newRotation / CLICK_SENSITIVITY).toInt()
+
+      if (newSection != prevSection) {
+         if (currentSpeed() < ALMOST_ZERO || currentSpeed() > ALMOST_ONE) {
+            vibrator.vibrate(VibrationEffect.createOneShot(LONG_VIBRATION_DURATION_MS, VibrationEffect.DEFAULT_AMPLITUDE))
+         } else {
+            vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+         }
+      }
+
+      bumpSpeed(-diff.toFloat())
+
+      rotation = newRotation
+   }
+
+   @Suppress("MagicNumber")
+   Canvas(
+      modifier.pointerInput(Unit) {
+         awaitEachGesture {
+            val firstDown = awaitFirstDown()
+
+            val radius = min(size.width, size.height) / 2
+            val centerX = size.width / 2
+            val centerY = size.height / 2
+            val downPos = firstDown.position
+            var lastAngle = Math.toDegrees(atan2((downPos.y - centerY).toDouble(), (downPos.x - centerX).toDouble())) + 180
+
+            while (true) {
+               val event = awaitPointerEvent()
+
+               event.changes.forEach { change ->
+                  val moveAngle =
+                     Math.toDegrees(
+                        atan2(
+                           (change.position.y - centerY).toDouble(),
+                           (change.position.x - centerX).toDouble()
+                        )
+                     ) + 180
+
+                  val absoluteDiff = -(moveAngle - lastAngle)
+                  val finalDiff = if (absoluteDiff > 180) {
+                     absoluteDiff - 360
+                  } else if (absoluteDiff < -180) {
+                     absoluteDiff + 360
+                  } else {
+                     absoluteDiff
+                  }
+                  updateRotation(finalDiff)
+                  lastAngle = moveAngle
+               }
+            }
+         }
+      }
+   ) {
+      val radius = size.minDimension / 2
+      drawCircle(color, radius, style = Stroke(1.dp.toPx()))
+
+      // Spokes
+      for (i in 0 until 359 step 30) {
+         val angle = (i + rotation).mod(360.0)
+         val xMult = sin(Math.toRadians(angle))
+         val yMult = cos(Math.toRadians(angle))
+
+         val start = Offset(
+            (xMult * radius * 0.2 + center.x).toFloat(),
+            (yMult * radius * 0.2 + center.y).toFloat(),
+         )
+         val end = Offset(
+            (xMult * radius * 0.8 + center.x).toFloat(),
+            (yMult * radius * 0.8 + center.y).toFloat(),
+         )
+
+         drawLine(color, start, end, 1.dp.toPx())
       }
    }
 }
@@ -452,3 +576,8 @@ private fun DrivingTrackUnpoweredPreview() {
 }
 
 private const val TOTAL_LOCO_FUNCTIONS = 28
+private const val JOGWHEEL_SENSITIVITY = 0.002f
+private const val ALMOST_ZERO = 0.01f
+private const val ALMOST_ONE = 0.99f
+private const val CLICK_SENSITIVITY = 30
+private const val LONG_VIBRATION_DURATION_MS = 500L
