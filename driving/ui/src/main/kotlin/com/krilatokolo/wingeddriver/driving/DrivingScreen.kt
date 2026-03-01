@@ -278,6 +278,9 @@ private fun DrivingContentLandscape(
          steps = maxSpeedAtLeastOne,
       )
 
+      SideEffect {
+         sliderState.value = state.speed
+      }
       sliderState.onValueChange = {
          setSpeed(it)
       }
