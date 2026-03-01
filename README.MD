@@ -6,6 +6,11 @@ This app uses Android's ConnectivityManager to connect to the Wi-Fi network dire
 control Wi-Fi network, so the rest of the phone can still use mobile data
 (since these networks are mostly without the internet access).
 
+# Credits
+
+* Z21 communications is based on the [Z21-drive](https://github.com/grizeldi/z21-drive) library
+* USB Controller support is taken from the [Moonlight](https://github.com/moonlight-stream/moonlight-android) project
+
 # Contributing
 
 ## Checking out project
