@@ -11,7 +11,7 @@ interface DrivingController {
 
    fun disconnect()
 
-   fun changeSpeed(newSpeed: Int)
+   fun changeSpeed(newSpeed: Float)
 
    fun changeDirection(forward: Boolean)
 

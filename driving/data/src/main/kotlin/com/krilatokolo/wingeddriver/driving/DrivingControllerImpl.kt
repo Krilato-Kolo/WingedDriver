@@ -39,6 +39,7 @@ import z21Drive.responses.ResponseTypes
 import z21Drive.responses.Z21Response
 import z21Drive.responses.Z21ResponseListener
 import java.net.Inet4Address
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
 @Inject
@@ -86,9 +87,8 @@ class DrivingControllerImpl(
       }
    }
 
-   @Suppress("MagicNumber") // TMP
-   override fun changeSpeed(newSpeed: Int) {
-      activeLoco.update { it?.copy(speed = newSpeed.coerceIn(0..it.maxSpeed)) }
+   override fun changeSpeed(newSpeed: Float) {
+      activeLoco.update { it?.copy(speed = newSpeed.coerceIn(0f..1f)) }
    }
 
    override fun changeDirection(forward: Boolean) {
@@ -96,7 +96,7 @@ class DrivingControllerImpl(
    }
 
    override fun changeLoco(id: Int) {
-      activeLoco.value = ActiveLocoState(id, 0, true, 0, emptyList())
+      activeLoco.value = ActiveLocoState(id, 0f, true, 0, emptyList())
 
       connectionScope?.launch {
          z21.sendActionToZ21(Z21ActionGetLocoInfo(id))
@@ -160,9 +160,10 @@ class DrivingControllerImpl(
                activeLoco.update { activeLoco ->
                   if (activeLoco?.id == broadcast.locoAddress) {
                      val functionsAsArray = broadcast.functionsAsArray
+                     val maxSpeed = broadcast.speedSteps - 1
                      activeLoco.copy(
-                        speed = broadcast.speed,
-                        maxSpeed = broadcast.speedSteps - 1,
+                        speed = broadcast.speed.toFloat() / maxSpeed,
+                        maxSpeed = maxSpeed,
                         forward = broadcast.direction,
                         activeFunctions = functionsAsArray.indices.filter { functionsAsArray[it] }
                      )
@@ -211,12 +212,13 @@ class DrivingControllerImpl(
          var lastDirection = true
          while (isActive) {
             activeLoco.value?.let { activeLoco ->
-               if (lastSpeed != activeLoco.speed || lastDirection != activeLoco.forward) {
+               val newSpeed = (activeLoco.speed * activeLoco.maxSpeed).roundToInt()
+               if (lastSpeed != newSpeed || lastDirection != activeLoco.forward) {
                   startTimeoutJob()
                   z21.sendActionToZ21(
                      Z21ActionSetLocoDrive(
                         activeLoco.id,
-                        activeLoco.speed,
+                        newSpeed,
                         when (activeLoco.maxSpeed) {
                            13 -> 0
                            27 -> 2
@@ -226,7 +228,7 @@ class DrivingControllerImpl(
                      )
                   )
 
-                  lastSpeed = activeLoco.speed
+                  lastSpeed = newSpeed
                   lastDirection = activeLoco.forward
                }
             }

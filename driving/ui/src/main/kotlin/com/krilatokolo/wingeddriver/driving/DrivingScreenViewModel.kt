@@ -59,7 +59,7 @@ class DrivingScreenViewModel(
       }
    }
 
-   fun setSpeed(newSpeed: Int) {
+   fun setSpeed(newSpeed: Float) {
       drivingController.changeSpeed(newSpeed)
    }
 
@@ -83,7 +83,7 @@ class DrivingScreenViewModel(
 
 data class DrivingState(
    val activeLoco: Int? = null,
-   val speed: Int = 0,
+   val speed: Float = 0f,
    val maxSpeed: Int = 0,
    val forward: Boolean = true,
    val connected: Boolean = false,

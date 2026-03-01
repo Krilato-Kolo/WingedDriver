@@ -60,7 +60,6 @@ import si.inova.kotlinova.navigation.instructions.navigateTo
 import si.inova.kotlinova.navigation.navigator.Navigator
 import si.inova.kotlinova.navigation.screens.InjectNavigationScreen
 import si.inova.kotlinova.navigation.screens.Screen
-import kotlin.math.roundToInt
 
 @InjectNavigationScreen
 class DrivingScreen(
@@ -85,7 +84,7 @@ class DrivingScreen(
 @Composable
 private fun DrivingScreenContent(
    state: DrivingState,
-   setSpeed: (Int) -> Unit,
+   setSpeed: (Float) -> Unit,
    setDirection: (Boolean) -> Unit,
    setTrackPower: (Boolean) -> Unit,
    toggleFunction: (Int, Boolean) -> Unit,
@@ -103,7 +102,7 @@ private fun DrivingScreenContent(
 @Composable
 private fun DrivingContentPortrait(
    state: DrivingState,
-   setSpeed: (Int) -> Unit,
+   setSpeed: (Float) -> Unit,
    setDirection: (Boolean) -> Unit,
    setTrackPower: (Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
@@ -179,10 +178,10 @@ private fun DrivingContentPortrait(
 
       val maxSpeedAtLeastOne = state.maxSpeed.coerceAtLeast(1)
       Slider(
-         state.speed / maxSpeedAtLeastOne.toFloat(),
+         state.speed,
          steps = maxSpeedAtLeastOne,
          onValueChange = {
-            setSpeed((it * state.maxSpeed).roundToInt())
+            setSpeed(it)
          },
          modifier = Modifier
             .fillMaxWidth()
@@ -195,7 +194,7 @@ private fun DrivingContentPortrait(
 @Composable
 private fun DrivingContentLandscape(
    state: DrivingState,
-   setSpeed: (Int) -> Unit,
+   setSpeed: (Float) -> Unit,
    setDirection: (Boolean) -> Unit,
    setTrackPower: (Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
@@ -275,12 +274,12 @@ private fun DrivingContentLandscape(
 
       val maxSpeedAtLeastOne = state.maxSpeed.coerceAtLeast(1)
       val sliderState = rememberSliderState(
-         state.speed / maxSpeedAtLeastOne.toFloat(),
+         state.speed,
          steps = maxSpeedAtLeastOne,
       )
 
       sliderState.onValueChange = {
-         setSpeed((it * state.maxSpeed).roundToInt())
+         setSpeed(it)
       }
       VerticalSlider(
          sliderState,
@@ -313,7 +312,7 @@ private fun LazyGridScope.locoFunctions(
 
 @Composable
 private fun GamepadControl(
-   setSpeed: (Int) -> Unit,
+   setSpeed: (Float) -> Unit,
    updatedState: () -> DrivingState,
    setDirection: (Boolean) -> Unit,
 ) {
@@ -325,13 +324,13 @@ private fun GamepadControl(
          if (it > 0.01f) {
             triggerActive = true
             if (!aPressed) {
-               setSpeed((it * it * updatedState().maxSpeed).roundToInt())
+               setSpeed(it * it)
                setDirection(false)
             }
          } else if (triggerActive) {
             triggerActive = false
             if (!aPressed) {
-               setSpeed(0)
+               setSpeed(0f)
             }
          }
       },
@@ -339,13 +338,13 @@ private fun GamepadControl(
          if (it > 0.01f) {
             triggerActive = true
             if (!aPressed) {
-               setSpeed((it * it * updatedState().maxSpeed).roundToInt())
+               setSpeed(it * it)
                setDirection(true)
             }
          } else if (triggerActive) {
             triggerActive = false
             if (!aPressed) {
-               setSpeed(0)
+               setSpeed(0f)
             }
          }
       },
@@ -364,11 +363,11 @@ private fun GamepadControl(
             }
 
             ControllerPacket.BACK_FLAG -> {
-               setSpeed(0)
+               setSpeed(0f)
             }
 
             ControllerPacket.PLAY_FLAG -> {
-               setSpeed(0)
+               setSpeed(0f)
             }
          }
       },
@@ -380,7 +379,7 @@ private fun GamepadControl(
          }
       },
       onControllerDisconnected = {
-         setSpeed(0)
+         setSpeed(0f)
       }
    )
 }
@@ -392,7 +391,7 @@ private fun DrivingScreenContentPreview() {
       DrivingScreenContent(
          DrivingState(
             activeLoco = 10,
-            speed = 30,
+            speed = 0.3f,
             maxSpeed = 128,
             forward = true,
             connected = true,
@@ -413,7 +412,7 @@ private fun DrivingScreenDisconnectedPreview() {
       DrivingScreenContent(
          DrivingState(
             activeLoco = 10,
-            speed = 30,
+            speed = 0.3f,
             maxSpeed = 128,
             forward = true,
             connected = false
@@ -434,7 +433,7 @@ private fun DrivingTrackUnpoweredPreview() {
       DrivingScreenContent(
          DrivingState(
             activeLoco = 10,
-            speed = 30,
+            speed = 0.3f,
             maxSpeed = 128,
             forward = true,
             connected = true,
