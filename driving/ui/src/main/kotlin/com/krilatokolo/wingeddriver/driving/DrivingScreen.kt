@@ -427,7 +427,7 @@ private fun Jogwheel(currentSpeed: () -> Float, bumpSpeed: (Float) -> Unit, modi
                   val diffX = change.position.y - centerY
                   val diffY = change.position.x - centerX
                   val distFromCenterSquared = square(diffX) + square(diffY)
-                  if (distFromCenterSquared < minDistanceFromCenterSquared) {
+                  if (!change.pressed || distFromCenterSquared < minDistanceFromCenterSquared) {
                      break@outerLoop
                   }
                   val moveAngle =
