@@ -91,7 +91,8 @@ class DrivingScreen(
          viewModel::setDirection,
          viewModel::toggleTrackPower,
          viewModel::toggleLocoFunction,
-         { navigator.navigateTo(LocomotivePickerScreenKey) }
+         { navigator.navigateTo(LocomotivePickerScreenKey) },
+         viewModel::emergencyStop,
       )
    }
 }
@@ -104,12 +105,21 @@ private fun DrivingScreenContent(
    setTrackPower: (Boolean) -> Unit,
    toggleFunction: (Int, Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
+   emergencyStop: () -> Unit,
 ) {
    BoxWithConstraints {
       if (maxWidth > maxHeight) {
-         DrivingContentLandscape(state, setSpeed, setDirection, setTrackPower, openLocomotivePicker, toggleFunction)
+         DrivingContentLandscape(
+            state,
+            setSpeed,
+            setDirection,
+            setTrackPower,
+            openLocomotivePicker,
+            toggleFunction,
+            emergencyStop
+         )
       } else {
-         DrivingContentPortrait(state, setSpeed, setDirection, setTrackPower, openLocomotivePicker, toggleFunction)
+         DrivingContentPortrait(state, setSpeed, setDirection, setTrackPower, openLocomotivePicker, toggleFunction, emergencyStop)
       }
    }
 }
@@ -122,6 +132,7 @@ private fun DrivingContentPortrait(
    setTrackPower: (Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
    toggleFunction: (Int, Boolean) -> Unit,
+   emergencyStop: () -> Unit,
 ) {
    val updatedState = rememberUpdatedState(state)
    GamepadControl(setSpeed, updatedState::value, setDirection)
@@ -192,13 +203,23 @@ private fun DrivingContentPortrait(
             .fillMaxWidth()
       )
 
-      val buttonText = if (state.forward) "< \uD83D\uDE82" else "\uD83D\uDE82 >"
-      Button(onClick = { setDirection(!state.forward) }) {
-         Text(
-            buttonText,
-            Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-         )
+      Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+         Button(onClick = { emergencyStop() }, Modifier.weight(1f)) {
+            Text(
+               stringResource(R.string.stop),
+               modifier = Modifier.fillMaxWidth(),
+               textAlign = TextAlign.Center
+            )
+         }
+
+         val buttonText = if (state.forward) "< \uD83D\uDE82" else "\uD83D\uDE82 >"
+         Button(onClick = { setDirection(!state.forward) }, Modifier.weight(1f)) {
+            Text(
+               buttonText,
+               Modifier.fillMaxWidth(),
+               textAlign = TextAlign.Center
+            )
+         }
       }
 
       val maxSpeedAtLeastOne = state.maxSpeed.coerceAtLeast(1)
@@ -224,6 +245,7 @@ private fun DrivingContentLandscape(
    setTrackPower: (Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
    toggleFunction: (Int, Boolean) -> Unit,
+   emergencyStop: () -> Unit,
 ) {
    val updatedState = rememberUpdatedState(state)
    GamepadControl(setSpeed, updatedState::value, setDirection)
@@ -295,17 +317,27 @@ private fun DrivingContentLandscape(
             .fillMaxHeight()
       )
 
-      println("Speed ${state.speed}")
+      Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxHeight()) {
+         Button(onClick = { emergencyStop() }, Modifier.weight(1f)) {
+            Text(
+               stringResource(R.string.stop_newlines),
+               modifier = Modifier
+                  .fillMaxHeight()
+                  .wrapContentHeight(),
+               textAlign = TextAlign.Center
+            )
+         }
 
-      val buttonText = if (state.forward) "/\\\n\uD83D\uDE82" else "\uD83D\uDE82\n\\/"
-      Button(onClick = { setDirection(!state.forward) }) {
-         Text(
-            buttonText,
-            Modifier
-               .fillMaxHeight()
-               .wrapContentHeight(),
-            textAlign = TextAlign.Center
-         )
+         val buttonText = if (state.forward) "/\\\n\uD83D\uDE82" else "\uD83D\uDE82\n\\/"
+         Button(onClick = { setDirection(!state.forward) }, modifier = Modifier.weight(1f)) {
+            Text(
+               buttonText,
+               Modifier
+                  .fillMaxHeight()
+                  .wrapContentHeight(),
+               textAlign = TextAlign.Center
+            )
+         }
       }
 
       val maxSpeedAtLeastOne = state.maxSpeed.coerceAtLeast(1)
@@ -538,6 +570,7 @@ private fun DrivingScreenContentPreview() {
          {},
          { _, _ -> },
          {},
+         {},
       )
    }
 }
@@ -558,6 +591,7 @@ private fun DrivingScreenDisconnectedPreview() {
          {},
          {},
          { _, _ -> },
+         {},
          {},
       )
    }
@@ -580,6 +614,7 @@ private fun DrivingTrackUnpoweredPreview() {
          {},
          {},
          { _, _ -> },
+         {},
          {},
       )
    }

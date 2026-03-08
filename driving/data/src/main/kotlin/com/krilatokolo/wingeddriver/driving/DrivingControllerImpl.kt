@@ -25,6 +25,7 @@ import z21Drive.actions.Z21ActionGetSerialNumber
 import z21Drive.actions.Z21ActionLanXTrackPowerOff
 import z21Drive.actions.Z21ActionLanXTrackPowerOn
 import z21Drive.actions.Z21ActionSetLocoDrive
+import z21Drive.actions.Z21ActionSetLocoEmergencyStop
 import z21Drive.actions.Z21ActionSetLocoFunction
 import z21Drive.broadcasts.BroadcastFlagHandler
 import z21Drive.broadcasts.BroadcastFlags
@@ -89,6 +90,14 @@ class DrivingControllerImpl(
 
    override fun changeSpeed(newSpeed: Float) {
       activeLoco.update { it?.copy(speed = newSpeed.coerceIn(0f..1f)) }
+   }
+
+   override fun emergencyStop() {
+      val activeLoco = activeLoco.value ?: return
+
+      connectionScope?.launch {
+         z21.sendActionToZ21(Z21ActionSetLocoEmergencyStop(activeLoco.id))
+      }
    }
 
    override fun changeDirection(forward: Boolean) {

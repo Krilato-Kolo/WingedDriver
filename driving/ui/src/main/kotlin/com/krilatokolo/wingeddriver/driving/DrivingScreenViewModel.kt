@@ -63,6 +63,10 @@ class DrivingScreenViewModel(
       drivingController.changeSpeed(newSpeed)
    }
 
+   fun emergencyStop() {
+      drivingController.emergencyStop()
+   }
+
    fun setDirection(forward: Boolean) {
       drivingController.changeDirection(forward)
    }
