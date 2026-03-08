@@ -382,20 +382,27 @@ private fun Jogwheel(currentSpeed: () -> Float, bumpSpeed: (Float) -> Unit, modi
             val firstDown = awaitFirstDown()
 
             val radius = min(size.width, size.height) / 2
+            val minDistanceFromCenterSquared = square(radius * CLICK_OUTER_AREA)
             val centerX = size.width / 2
             val centerY = size.height / 2
             val downPos = firstDown.position
             var lastAngle = Math.toDegrees(atan2((downPos.y - centerY).toDouble(), (downPos.x - centerX).toDouble())) + 180
 
-            while (true) {
+            outerLoop@ while (true) {
                val event = awaitPointerEvent()
 
-               event.changes.forEach { change ->
+               for (change in event.changes) {
+                  val diffX = change.position.y - centerY
+                  val diffY = change.position.x - centerX
+                  val distFromCenterSquared = square(diffX) + square(diffY)
+                  if (distFromCenterSquared < minDistanceFromCenterSquared) {
+                     break@outerLoop
+                  }
                   val moveAngle =
                      Math.toDegrees(
                         atan2(
-                           (change.position.y - centerY).toDouble(),
-                           (change.position.x - centerX).toDouble()
+                           diffX.toDouble(),
+                           diffY.toDouble()
                         )
                      ) + 180
 
@@ -415,6 +422,7 @@ private fun Jogwheel(currentSpeed: () -> Float, bumpSpeed: (Float) -> Unit, modi
       }
    ) {
       val radius = size.minDimension / 2
+      val spokeStart = (1 - CLICK_OUTER_AREA)
       drawCircle(color, radius, style = Stroke(1.dp.toPx()))
 
       // Spokes
@@ -424,12 +432,12 @@ private fun Jogwheel(currentSpeed: () -> Float, bumpSpeed: (Float) -> Unit, modi
          val yMult = cos(Math.toRadians(angle))
 
          val start = Offset(
-            (xMult * radius * 0.2 + center.x).toFloat(),
-            (yMult * radius * 0.2 + center.y).toFloat(),
+            (xMult * radius * spokeStart + center.x).toFloat(),
+            (yMult * radius * spokeStart + center.y).toFloat(),
          )
          val end = Offset(
-            (xMult * radius * 0.8 + center.x).toFloat(),
-            (yMult * radius * 0.8 + center.y).toFloat(),
+            (xMult * radius * 0.9 + center.x).toFloat(),
+            (yMult * radius * 0.9 + center.y).toFloat(),
          )
 
          drawLine(color, start, end, 1.dp.toPx())
@@ -511,6 +519,8 @@ private fun GamepadControl(
    )
 }
 
+private fun square(a: Float): Float = a * a
+
 @FullScreenPreviews
 @Composable
 private fun DrivingScreenContentPreview() {
@@ -581,3 +591,4 @@ private const val ALMOST_ZERO = 0.01f
 private const val ALMOST_ONE = 0.99f
 private const val CLICK_SENSITIVITY = 30
 private const val LONG_VIBRATION_DURATION_MS = 500L
+private const val CLICK_OUTER_AREA = 0.4f
