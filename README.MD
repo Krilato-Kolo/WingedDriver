@@ -24,8 +24,8 @@ Mappings:
 * D-pad left = Change train direction to backwards
 * D-pad right = Change train direction to forwards
 * X = Toggle loco function F0
-* Y = Toggle loco function F2
-* B = Toggle loco function F3
+* Y = Toggle loco function F1
+* B = Toggle loco function F2
 
 # Credits
 
