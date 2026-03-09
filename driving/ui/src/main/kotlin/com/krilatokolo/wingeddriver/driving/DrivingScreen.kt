@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -60,6 +61,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.getSystemService
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.krilatokolo.wingeddriver.GamepadListener
 import com.krilatokolo.wingeddriver.controller.ControllerPacket
 import com.krilatokolo.wingeddriver.driving.ui.R
@@ -67,10 +69,16 @@ import com.krilatokolo.wingeddriver.navigation.keys.DrivingScreenKey
 import com.krilatokolo.wingeddriver.navigation.keys.base.LocomotivePickerScreenKey
 import com.krilatokolo.wingeddriver.ui.debugging.FullScreenPreviews
 import com.krilatokolo.wingeddriver.ui.debugging.PreviewTheme
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
 import si.inova.kotlinova.navigation.instructions.navigateTo
 import si.inova.kotlinova.navigation.navigator.Navigator
 import si.inova.kotlinova.navigation.screens.InjectNavigationScreen
 import si.inova.kotlinova.navigation.screens.Screen
+import java.text.SimpleDateFormat
+import java.util.Date
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
@@ -151,13 +159,16 @@ private fun DrivingContentPortrait(
          horizontalArrangement = Arrangement.spacedBy(16.dp),
          verticalAlignment = Alignment.CenterVertically,
       ) {
-         if (!state.connected) {
-            Icon(
-               painterResource(R.drawable.ic_disconnected),
-               stringResource(R.string.disconnected),
-               tint = MaterialTheme.colorScheme.error
-            )
-         }
+         Icon(
+            painterResource(R.drawable.ic_disconnected),
+            stringResource(R.string.disconnected),
+            tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.graphicsLayer {
+               alpha = if (state.connected) 1f else 0f
+            }
+         )
+
+         Clock()
 
          Spacer(Modifier.weight(1f))
 
@@ -295,15 +306,19 @@ private fun DrivingContentLandscape(
          )
       }
 
-      LazyVerticalGrid(
-         GridCells.Adaptive(96.dp),
-         Modifier
-            .weight(1f)
-            .fillMaxHeight(),
-         horizontalArrangement = Arrangement.spacedBy(8.dp),
-         verticalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-         locoFunctions(state, toggleFunction)
+      Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+         Clock(Modifier.padding(bottom = 4.dp))
+
+         LazyVerticalGrid(
+            GridCells.Adaptive(96.dp),
+            Modifier
+               .weight(1f)
+               .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+         ) {
+            locoFunctions(state, toggleFunction)
+         }
       }
 
       val updatedSpeed by rememberUpdatedState(state.speed)
@@ -550,6 +565,27 @@ private fun GamepadControl(
       }
    )
 }
+
+@Composable
+private fun Clock(modifier: Modifier = Modifier) {
+   val dateFlow = remember {
+      flow {
+         while (currentCoroutineContext().isActive) {
+            val now = Date()
+            emit(now)
+            val timeToNext = SEOCNDS_IN_MC - (now.time % SEOCNDS_IN_MC)
+            delay(timeToNext)
+         }
+      }
+   }
+
+   val clock = dateFlow.collectAsStateWithLifecycle(Date()).value
+
+   Text(TIME_FORMAT.format(clock.time), modifier, fontSize = 24.sp)
+}
+
+private const val SEOCNDS_IN_MC = 1000
+private val TIME_FORMAT = SimpleDateFormat("HH:mm:ss")
 
 private fun square(a: Float): Float = a * a
 
