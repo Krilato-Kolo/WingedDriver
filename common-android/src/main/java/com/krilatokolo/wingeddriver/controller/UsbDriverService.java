@@ -134,7 +134,7 @@ public class UsbDriverService implements UsbDriverListener {
 
     private void handleUsbDeviceState(UsbDevice device) {
         // Are we able to operate it?
-        if (shouldClaimDevice(device, false)){
+        if (shouldClaimDevice(device, false) && device.getProductName() != null) {
             // Do we have permission yet?
             if (!usbManager.hasPermission(device)) {
                 // Let's ask for permission
