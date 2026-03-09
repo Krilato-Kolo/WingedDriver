@@ -12,7 +12,7 @@ import java.nio.ByteOrder;
  * @author grizeldi
  */
 public class BroadcastFlagHandler {
-    private static boolean receiveGlobalBroadcasts = true, receiveAllLocos = true, receiveCentreStatus = true;
+    private static boolean receiveGlobalBroadcasts = true, receiveAllLocos = false, receiveCentreStatus = false;
 
     public static void setReceive(BroadcastFlags flag, boolean receive) {
         switch (flag) {
