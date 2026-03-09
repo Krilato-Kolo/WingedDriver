@@ -157,7 +157,7 @@ private fun DrivingContentPortrait(
    emergencyStop: () -> Unit,
 ) {
    val updatedState = rememberUpdatedState(state)
-   GamepadControl(setSpeed, updatedState::value, setDirection)
+   GamepadControl(setSpeed, updatedState::value, setDirection, emergencyStop)
 
    Column(
       Modifier
@@ -524,6 +524,7 @@ private fun GamepadControl(
    setSpeed: (Float) -> Unit,
    updatedState: () -> DrivingState,
    setDirection: (Boolean) -> Unit,
+   emergencyStop: () -> Unit,
 ) {
    var triggerActive by remember { mutableStateOf(false) }
    var aPressed by remember { mutableStateOf(false) }
@@ -572,7 +573,7 @@ private fun GamepadControl(
             }
 
             ControllerPacket.BACK_FLAG -> {
-               setSpeed(0f)
+               emergencyStop()
             }
 
             ControllerPacket.PLAY_FLAG -> {
