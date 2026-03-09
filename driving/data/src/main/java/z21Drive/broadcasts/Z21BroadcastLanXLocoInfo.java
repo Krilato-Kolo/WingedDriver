@@ -31,7 +31,7 @@ public class Z21BroadcastLanXLocoInfo extends Z21Broadcast {
 
         boolean[] db2bits = fromByte(byteRepresentation[7]);
         locoInUse = db2bits[4];
-        String binary = String.format("%8s", Integer.toBinaryString(byteRepresentation[7])).replace(' ', '0');
+        String binary = String.format("%8s", Integer.toBinaryString(byteRepresentation[7] & 0b1111)).replace(' ', '0');
         if (binary.equals("00000000") || binary.equals("00001000"))
             speedSteps = 14;
         else if (binary.equals("00000010") || binary.equals("00001010"))
