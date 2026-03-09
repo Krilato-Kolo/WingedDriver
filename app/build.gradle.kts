@@ -130,6 +130,7 @@ dependencies {
    implementation(projects.logging.crashreport)
    implementation(projects.wifi.data)
    implementation(projects.wifi.ui)
+   implementation(projects.tools.ui)
 
    implementation(libs.androidx.activity.compose)
    implementation(libs.androidx.core)

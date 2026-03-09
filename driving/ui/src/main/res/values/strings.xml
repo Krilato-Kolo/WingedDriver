@@ -5,4 +5,5 @@
     <string name="track_turned_off">Track turned off</string>
     <string name="stop_newlines">S\nT\nO\nP</string>
     <string name="stop">STOP</string>
+    <string name="open_settings">Settings</string>
 </resources>

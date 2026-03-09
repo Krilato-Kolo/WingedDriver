@@ -3,4 +3,7 @@
     <string name="select_train">Izberi lokomotivo</string>
     <string name="disconnected">Povezava prekinjena</string>
     <string name="track_turned_off">Tiri so izklopljeni</string>
+    <string name="stop_newlines">S\nT\nO\nP</string>
+    <string name="stop">STOP</string>
+    <string name="open_settings">Nastavitve</string>
 </resources>

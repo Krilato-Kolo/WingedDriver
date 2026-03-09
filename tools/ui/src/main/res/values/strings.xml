@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="invert_direction">Invert direction</string>
+    <string name="winged_driver_version">Winged Driver version %1$s</string>
+</resources>

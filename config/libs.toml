@@ -25,6 +25,7 @@ androidx-test-services = "1.6.0"
 androidx-test-uiautomator = "2.3.0"
 coil = "3.3.0"
 composeGuard = "2.4.0"
+composePreference = "2.1.1"
 dependencyAnalysis = "3.5.1"
 desugarJdkLibs = "2.1.5"
 detekt = "2.0.0-alpha.1"
@@ -103,6 +104,7 @@ androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiaut
 coil = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 composeGuard = { module = "com.joetr.compose.guard:com.joetr.compose.guard.gradle.plugin", version.ref = "composeGuard" }
+composePreference = { module = "me.zhanghai.compose.preference:preference", version.ref = "composePreference" }
 dependencyAnalysis = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version.ref = "dependencyAnalysis" }
 desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 detekt-api = { module = "dev.detekt:detekt-api", version.ref = "detekt" }

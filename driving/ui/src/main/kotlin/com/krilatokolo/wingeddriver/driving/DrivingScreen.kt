@@ -66,6 +66,7 @@ import com.krilatokolo.wingeddriver.GamepadListener
 import com.krilatokolo.wingeddriver.controller.ControllerPacket
 import com.krilatokolo.wingeddriver.driving.ui.R
 import com.krilatokolo.wingeddriver.navigation.keys.DrivingScreenKey
+import com.krilatokolo.wingeddriver.navigation.keys.ToolsScreenKey
 import com.krilatokolo.wingeddriver.navigation.keys.base.LocomotivePickerScreenKey
 import com.krilatokolo.wingeddriver.ui.debugging.FullScreenPreviews
 import com.krilatokolo.wingeddriver.ui.debugging.PreviewTheme
@@ -100,6 +101,7 @@ class DrivingScreen(
          viewModel::toggleTrackPower,
          viewModel::toggleLocoFunction,
          { navigator.navigateTo(LocomotivePickerScreenKey) },
+         { navigator.navigateTo(ToolsScreenKey) },
          viewModel::emergencyStop,
       )
    }
@@ -113,6 +115,7 @@ private fun DrivingScreenContent(
    setTrackPower: (Boolean) -> Unit,
    toggleFunction: (Int, Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
+   openSettings: () -> Unit,
    emergencyStop: () -> Unit,
 ) {
    BoxWithConstraints {
@@ -123,11 +126,21 @@ private fun DrivingScreenContent(
             setDirection,
             setTrackPower,
             openLocomotivePicker,
+            openSettings,
             toggleFunction,
             emergencyStop
          )
       } else {
-         DrivingContentPortrait(state, setSpeed, setDirection, setTrackPower, openLocomotivePicker, toggleFunction, emergencyStop)
+         DrivingContentPortrait(
+            state,
+            setSpeed,
+            setDirection,
+            setTrackPower,
+            openLocomotivePicker,
+            openSettings,
+            toggleFunction,
+            emergencyStop
+         )
       }
    }
 }
@@ -139,6 +152,7 @@ private fun DrivingContentPortrait(
    setDirection: (Boolean) -> Unit,
    setTrackPower: (Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
+   openSettings: () -> Unit,
    toggleFunction: (Int, Boolean) -> Unit,
    emergencyStop: () -> Unit,
 ) {
@@ -171,6 +185,12 @@ private fun DrivingContentPortrait(
          Clock()
 
          Spacer(Modifier.weight(1f))
+
+         Button(
+            onClick = { openSettings() },
+         ) {
+            Icon(painterResource(R.drawable.ic_settings), stringResource(R.string.open_settings))
+         }
 
          ToggleButton(
             !state.trackPoweredOn,
@@ -255,6 +275,7 @@ private fun DrivingContentLandscape(
    setDirection: (Boolean) -> Unit,
    setTrackPower: (Boolean) -> Unit,
    openLocomotivePicker: () -> Unit,
+   openSettings: () -> Unit,
    toggleFunction: (Int, Boolean) -> Unit,
    emergencyStop: () -> Unit,
 ) {
@@ -283,6 +304,12 @@ private fun DrivingContentLandscape(
             )
          ) {
             Icon(painterResource(R.drawable.ic_off), stringResource(R.string.track_turned_off))
+         }
+
+         Button(
+            onClick = { openSettings() },
+         ) {
+            Icon(painterResource(R.drawable.ic_settings), stringResource(R.string.open_settings))
          }
 
          Spacer(Modifier.weight(1f))
@@ -607,6 +634,7 @@ private fun DrivingScreenContentPreview() {
          { _, _ -> },
          {},
          {},
+         {},
       )
    }
 }
@@ -627,6 +655,7 @@ private fun DrivingScreenDisconnectedPreview() {
          {},
          {},
          { _, _ -> },
+         {},
          {},
          {},
       )
@@ -650,6 +679,7 @@ private fun DrivingTrackUnpoweredPreview() {
          {},
          {},
          { _, _ -> },
+         {},
          {},
          {},
       )

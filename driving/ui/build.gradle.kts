@@ -17,8 +17,10 @@ dependencies {
    api(projects.driving.api)
    api(projects.common)
    api(projects.commonAndroid)
-   implementation(projects.commonCompose)
+   api(libs.androidx.datastore.preferences)
 
+   implementation(projects.tools.api)
+   implementation(projects.commonCompose)
    implementation(libs.dispatch)
    implementation(libs.kotlinova.core)
    implementation(libs.kotlinova.compose)

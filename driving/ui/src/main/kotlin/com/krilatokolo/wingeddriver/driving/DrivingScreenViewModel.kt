@@ -1,8 +1,11 @@
 package com.krilatokolo.wingeddriver.driving
 
 import androidx.compose.runtime.Stable
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.krilatokolo.wingeddriver.common.ActivityStartedRepository
 import com.krilatokolo.wingeddriver.navigation.keys.DrivingScreenKey
+import com.krilatokolo.wingeddriver.tools.invertDirectionPreference
 import dev.zacsweers.metro.Inject
 import dispatch.core.withDefault
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,10 +23,13 @@ class DrivingScreenViewModel(
    private val resources: CoroutineResourceManager,
    private val drivingController: DrivingController,
    private val activityStartedRepository: ActivityStartedRepository,
+   private val preferenceStore: DataStore<Preferences>,
 ) : SingleScreenViewModel<DrivingScreenKey>(resources.scope) {
    private val _uiState = MutableStateFlow<DrivingState>(DrivingState())
    val uiState: StateFlow<DrivingState>
       get() = _uiState
+
+   private var invertDirection: Boolean = false
 
    override fun onServiceRegistered() {
       resources.launchWithExceptionReporting {
@@ -39,13 +45,18 @@ class DrivingScreenViewModel(
       }
 
       resources.launchWithExceptionReporting {
-         val flow = combine(drivingController.trackState, drivingController.activeLoco) { trackState, activeLoco ->
+         val flow = combine(
+            preferenceStore.data,
+            drivingController.trackState,
+            drivingController.activeLoco
+         ) { preferences, trackState, activeLoco ->
+            invertDirection = preferences.get(invertDirectionPreference) == true
             if (activeLoco != null) {
                DrivingState(
                   activeLoco.id,
                   activeLoco.speed,
                   activeLoco.maxSpeed,
-                  activeLoco.forward,
+                  activeLoco.forward.possiblyInvert(),
                   trackState.connected,
                   trackState.powerOn,
                   activeLoco.activeFunctions,
@@ -68,7 +79,7 @@ class DrivingScreenViewModel(
    }
 
    fun setDirection(forward: Boolean) {
-      drivingController.changeDirection(forward)
+      drivingController.changeDirection(forward.possiblyInvert())
    }
 
    fun toggleTrackPower(poweredOn: Boolean) {
@@ -82,6 +93,14 @@ class DrivingScreenViewModel(
    override fun onServiceUnregistered() {
       drivingController.disconnect()
       super.onServiceUnregistered()
+   }
+
+   private fun Boolean.possiblyInvert(): Boolean {
+      return if (invertDirection) {
+         !this
+      } else {
+         this
+      }
    }
 }
 
