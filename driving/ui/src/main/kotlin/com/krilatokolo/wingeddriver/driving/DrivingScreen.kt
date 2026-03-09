@@ -294,7 +294,7 @@ private fun DrivingContentLandscape(
             .width(48.dp)
             .fillMaxHeight(),
          verticalArrangement = Arrangement.spacedBy(16.dp),
-         horizontalAlignment = Alignment.CenterHorizontally,
+         horizontalAlignment = Aligxnment.CenterHorizontally,
       ) {
          ToggleButton(
             !state.trackPoweredOn,
