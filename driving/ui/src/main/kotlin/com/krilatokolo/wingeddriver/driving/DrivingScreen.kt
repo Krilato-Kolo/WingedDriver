@@ -280,7 +280,7 @@ private fun DrivingContentLandscape(
    emergencyStop: () -> Unit,
 ) {
    val updatedState = rememberUpdatedState(state)
-   GamepadControl(setSpeed, updatedState::value, setDirection)
+   GamepadControl(setSpeed, updatedState::value, setDirection, emergencyStop)
 
    Row(
       Modifier
