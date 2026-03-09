@@ -6,6 +6,27 @@ This app uses Android's ConnectivityManager to connect to the Wi-Fi network dire
 control Wi-Fi network, so the rest of the phone can still use mobile data
 (since these networks are mostly without the internet access).
 
+# Controller map
+
+Trains can also be controlled via USB or bluetooth Controller / gamepad.
+
+Mappings:
+
+* Left trigger = Move backwards. Press trigger harder for more speed.
+* Right trigger = Move forwards. Press trigger harder for more speed.
+* A = When holding A, trigger inputs are ignored
+    * With this you can start holding one of the triggers, start holding A and then
+      depress the trigger - train will continue at the same speed.
+* Left bumper = decrease the train speed (can hold)
+* Right bumper = increase the train speed (can hold)
+* Start / Plus / Play / Menu = Stop the train
+* Back / Minus / View = Emergency stop the train
+* D-pad left = Change train direction to backwards
+* D-pad right = Change train direction to forwards
+* X = Toggle loco function F0
+* Y = Toggle loco function F2
+* B = Toggle loco function F3
+
 # Credits
 
 * Z21 communications is based on the [Z21-drive](https://github.com/grizeldi/z21-drive) library

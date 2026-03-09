@@ -520,11 +520,13 @@ private fun Jogwheel(currentSpeed: () -> Float, bumpSpeed: (Float) -> Unit, modi
 }
 
 @Composable
+@Suppress("CyclomaticComplexMethod") // It's just a huge when statement
 private fun GamepadControl(
    setSpeed: (Float) -> Unit,
    updatedState: () -> DrivingState,
    setDirection: (Boolean) -> Unit,
    emergencyStop: () -> Unit,
+   toggleFunction: (Int, Boolean) -> Unit,
 ) {
    var triggerActive by remember { mutableStateOf(false) }
    var aPressed by remember { mutableStateOf(false) }
@@ -578,6 +580,26 @@ private fun GamepadControl(
 
             ControllerPacket.PLAY_FLAG -> {
                setSpeed(0f)
+            }
+
+            ControllerPacket.X_FLAG -> {
+               toggleFunction(0, !updatedState().activeFunctions.contains(0))
+            }
+
+            ControllerPacket.Y_FLAG -> {
+               toggleFunction(1, !updatedState().activeFunctions.contains(1))
+            }
+
+            ControllerPacket.B_FLAG -> {
+               toggleFunction(2, !updatedState().activeFunctions.contains(2))
+            }
+
+            ControllerPacket.LEFT_FLAG -> {
+               setDirection(false)
+            }
+
+            ControllerPacket.RIGHT_FLAG -> {
+               setDirection(true)
             }
          }
       },
