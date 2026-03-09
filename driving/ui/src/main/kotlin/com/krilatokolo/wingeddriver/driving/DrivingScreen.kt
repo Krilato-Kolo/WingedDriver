@@ -157,7 +157,7 @@ private fun DrivingContentPortrait(
    emergencyStop: () -> Unit,
 ) {
    val updatedState = rememberUpdatedState(state)
-   GamepadControl(setSpeed, updatedState::value, setDirection, emergencyStop)
+   GamepadControl(setSpeed, updatedState::value, setDirection, emergencyStop, toggleFunction)
 
    Column(
       Modifier
@@ -280,7 +280,7 @@ private fun DrivingContentLandscape(
    emergencyStop: () -> Unit,
 ) {
    val updatedState = rememberUpdatedState(state)
-   GamepadControl(setSpeed, updatedState::value, setDirection, emergencyStop)
+   GamepadControl(setSpeed, updatedState::value, setDirection, emergencyStop, toggleFunction)
 
    Row(
       Modifier
@@ -294,7 +294,7 @@ private fun DrivingContentLandscape(
             .width(48.dp)
             .fillMaxHeight(),
          verticalArrangement = Arrangement.spacedBy(16.dp),
-         horizontalAlignment = Aligxnment.CenterHorizontally,
+         horizontalAlignment = Alignment.CenterHorizontally,
       ) {
          ToggleButton(
             !state.trackPoweredOn,
