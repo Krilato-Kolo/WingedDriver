@@ -10,6 +10,7 @@ import z21Drive.responses.*;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -100,30 +101,37 @@ public class Z21 implements Runnable {
     public void run() {
         while (!exit) {
             try {
-                DatagramPacket packet = new DatagramPacket(new byte[510], 510);
+                DatagramPacket packet = new DatagramPacket(new byte[10000], 10000);
                 socket.receive(packet);
-                //Determine if it's a response or a broadcast
-                if (PacketConverter.responseFromPacket(packet) != null) {
-                    Z21Response response = PacketConverter.responseFromPacket(packet);
-                    for (Z21ResponseListener listener : responseListeners) {
-                        for (ResponseTypes type : listener.getListenerTypes()) {
-                            if (type == response.boundType) {
-                                listener.responseReceived(type, response);
+
+                int offset = 0;
+                while (offset < packet.getLength() - 3) {
+                    int size = packet.getData()[0] | (packet.getData()[1] << 8);
+
+                    //Determine if it's a response or a broadcast
+                    if (PacketConverter.responseFromPacket(packet, offset) != null) {
+                        Z21Response response = PacketConverter.responseFromPacket(packet, 0);
+                        for (Z21ResponseListener listener : responseListeners) {
+                            for (ResponseTypes type : listener.getListenerTypes()) {
+                                if (type == response.boundType) {
+                                    listener.responseReceived(type, response);
+                                }
                             }
                         }
-                    }
-                } else {
-                    Z21Broadcast broadcast = PacketConverter.broadcastFromPacket(packet);
-                    if (broadcast != null) {
-                        System.out.println("broadcast " + broadcast + " " + broadcastListeners.size());
-                        for (Z21BroadcastListener listener : broadcastListeners) {
-                            for (BroadcastTypes type : listener.getListenerTypes()) {
-                                if (type == broadcast.boundType) {
-                                    listener.onBroadCast(type, broadcast);
+                    } else {
+                        Z21Broadcast broadcast = PacketConverter.broadcastFromPacket(packet, offset);
+                        if (broadcast != null) {
+                            for (Z21BroadcastListener listener : broadcastListeners) {
+                                for (BroadcastTypes type : listener.getListenerTypes()) {
+                                    if (type == broadcast.boundType) {
+                                        listener.onBroadCast(type, broadcast);
+                                    }
                                 }
                             }
                         }
                     }
+
+                    offset += size;
                 }
             } catch (IOException e) {
                 if (!exit)
@@ -207,8 +215,8 @@ class PacketConverter {
      * @param packet UDP packet received from Z21
      * @return Z21 response object which represents the byte array.
      */
-    static Z21Response responseFromPacket(DatagramPacket packet) {
-        byte[] array = packet.getData();
+    static Z21Response responseFromPacket(DatagramPacket packet, int offset) {
+        byte[] array = Arrays.copyOfRange(packet.getData(), offset, packet.getData().length - offset);
         byte header1 = array[2], header2 = array[3];
         int xHeader = array[4] & 255;
         if (header1 == 0x10 && header2 == 0x00)
@@ -230,8 +238,8 @@ class PacketConverter {
      * @param packet UDP packet received from Z21
      * @return Z21 broadcast object which represents the broadcast sent from Z21.
      */
-    static Z21Broadcast broadcastFromPacket(DatagramPacket packet) {
-        byte[] data = packet.getData();
+    static Z21Broadcast broadcastFromPacket(DatagramPacket packet, int offset) {
+        byte[] data = Arrays.copyOfRange(packet.getData(), offset, packet.getData().length - offset);
         //Get headers
         byte header1 = data[2], header2 = data[3];
         int xHeader = data[4] & 255;
@@ -260,7 +268,7 @@ class PacketConverter {
 //            Logger.getLogger("Z21 Receiver").warning("Received unknown message. Array:");
 //            for (byte b : newArray)
 //                System.out.print("0x" + String.format("%02X ", b));
-            System.out.println();
+//            System.out.println();
         }
         return null;
     }
