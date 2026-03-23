@@ -89,18 +89,16 @@ private fun ScheduleContent(schedule: List<TrainSchedule>, expanded: Boolean = f
          Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(vertical = 8.dp)) {
             Text(stop.name, fontSize = 24.sp)
 
-            if (stop.inbound) {
-               Text("(Prihod)", fontSize = 24.sp)
-            } else {
-               Text("(Odhod)", fontSize = 24.sp)
-            }
-
             Spacer(Modifier.weight(1f))
 
-            Text(stop.time.format(TIME_FORMAT), fontSize = 24.sp)
+            Text("${stop.from.formatTime()} - ${stop.to.formatTime()}", fontSize = 24.sp)
          }
       }
    }
+}
+
+private fun LocalTime?.formatTime(): String {
+   return this?.format(TIME_FORMAT) ?: "                "
 }
 
 private val TIME_FORMAT = LocalTime.Format {
@@ -115,8 +113,11 @@ private fun SchedulePreview() {
          TrainSchedule(
             "Train A",
             List(5) {
-               Stop("Stop $it", it % 2 == 0, LocalTime(12 + it, 0))
-            }
+               Stop("Stop $it", LocalTime(6 + it, 0), LocalTime(7 + it, 0))
+            } + listOf(
+               Stop("Stop 5", null, LocalTime(11, 0)),
+               Stop("Stop 6", LocalTime(12, 0), null),
+            )
          )
       )
 

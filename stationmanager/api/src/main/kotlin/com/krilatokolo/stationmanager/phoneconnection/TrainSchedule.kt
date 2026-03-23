@@ -7,4 +7,4 @@ import kotlinx.serialization.Serializable
 data class TrainSchedule(val name: String, val stops: List<Stop>)
 
 @Serializable
-data class Stop(val name: String, val inbound: Boolean, val time: LocalTime)
+data class Stop(val name: String, val from: LocalTime?, val to: LocalTime?)
