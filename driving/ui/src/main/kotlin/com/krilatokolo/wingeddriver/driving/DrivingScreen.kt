@@ -5,9 +5,11 @@ package com.krilatokolo.wingeddriver.driving
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -65,6 +67,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.krilatokolo.wingeddriver.GamepadListener
 import com.krilatokolo.wingeddriver.controller.ControllerPacket
 import com.krilatokolo.wingeddriver.driving.ui.R
+import com.krilatokolo.wingeddriver.navigation.ScheduleSubscreenKey
 import com.krilatokolo.wingeddriver.navigation.keys.DrivingScreenKey
 import com.krilatokolo.wingeddriver.navigation.keys.ToolsScreenKey
 import com.krilatokolo.wingeddriver.navigation.keys.base.LocomotivePickerScreenKey
@@ -89,13 +92,17 @@ import kotlin.math.sin
 class DrivingScreen(
    private val viewModel: DrivingScreenViewModel,
    private val navigator: Navigator,
+   private val scheduleScreen: Screen<ScheduleSubscreenKey>,
 ) : Screen<DrivingScreenKey>() {
    @Composable
    override fun Content(key: DrivingScreenKey) {
       val state = viewModel.uiState.collectAsState().value
 
+      var selectedSubscreen by remember { mutableStateOf(SubScreen.FUNCTIONS) }
+
       DrivingScreenContent(
          state,
+         selectedSubscreen,
          viewModel::setSpeed,
          viewModel::setDirection,
          viewModel::toggleTrackPower,
@@ -103,6 +110,34 @@ class DrivingScreen(
          { navigator.navigateTo(LocomotivePickerScreenKey) },
          { navigator.navigateTo(ToolsScreenKey) },
          viewModel::emergencyStop,
+         { selectedSubscreen = it },
+         { portrait ->
+            when (selectedSubscreen) {
+               SubScreen.FUNCTIONS -> {
+                  if (portrait) {
+                     LazyHorizontalGrid(
+                        GridCells.Adaptive(96.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                     ) {
+                        locoFunctions(state, viewModel::toggleLocoFunction)
+                     }
+                  } else {
+                     LazyVerticalGrid(
+                        GridCells.Adaptive(96.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                     ) {
+                        locoFunctions(state, viewModel::toggleLocoFunction)
+                     }
+                  }
+               }
+
+               SubScreen.SCHEDULE -> {
+                  scheduleScreen.Content(ScheduleSubscreenKey)
+               }
+            }
+         },
       )
    }
 }
@@ -110,6 +145,7 @@ class DrivingScreen(
 @Composable
 private fun DrivingScreenContent(
    state: DrivingState,
+   selectedSubscreen: SubScreen,
    setSpeed: (Float) -> Unit,
    setDirection: (Boolean) -> Unit,
    setTrackPower: (Boolean) -> Unit,
@@ -117,29 +153,37 @@ private fun DrivingScreenContent(
    openLocomotivePicker: () -> Unit,
    openSettings: () -> Unit,
    emergencyStop: () -> Unit,
+   setSubscreen: (SubScreen) -> Unit,
+   scheduleScreen: @Composable (portrait: Boolean) -> Unit,
 ) {
    BoxWithConstraints {
       if (maxWidth > maxHeight) {
          DrivingContentLandscape(
             state,
+            selectedSubscreen,
             setSpeed,
             setDirection,
             setTrackPower,
             openLocomotivePicker,
             openSettings,
             toggleFunction,
-            emergencyStop
+            emergencyStop,
+            setSubscreen,
+            { scheduleScreen(true) },
          )
       } else {
          DrivingContentPortrait(
             state,
+            selectedSubscreen,
             setSpeed,
             setDirection,
             setTrackPower,
             openLocomotivePicker,
             openSettings,
             toggleFunction,
-            emergencyStop
+            emergencyStop,
+            setSubscreen,
+            { scheduleScreen(true) },
          )
       }
    }
@@ -148,6 +192,7 @@ private fun DrivingScreenContent(
 @Composable
 private fun DrivingContentPortrait(
    state: DrivingState,
+   subScreen: SubScreen,
    setSpeed: (Float) -> Unit,
    setDirection: (Boolean) -> Unit,
    setTrackPower: (Boolean) -> Unit,
@@ -155,6 +200,8 @@ private fun DrivingContentPortrait(
    openSettings: () -> Unit,
    toggleFunction: (Int, Boolean) -> Unit,
    emergencyStop: () -> Unit,
+   setSubscreen: (SubScreen) -> Unit,
+   subscreenContent: @Composable () -> Unit,
 ) {
    val updatedState = rememberUpdatedState(state)
    GamepadControl(setSpeed, updatedState::value, setDirection, emergencyStop, toggleFunction)
@@ -182,7 +229,19 @@ private fun DrivingContentPortrait(
             }
          )
 
-         Clock()
+         val subscreenUpdated by rememberUpdatedState(subScreen)
+
+         Clock(
+            Modifier.clickable(
+               onClick = {
+                  if (subscreenUpdated == SubScreen.FUNCTIONS) {
+                     setSubscreen(SubScreen.SCHEDULE)
+                  } else {
+                     setSubscreen(SubScreen.FUNCTIONS)
+                  }
+               }
+            )
+         )
 
          Spacer(Modifier.weight(1f))
 
@@ -211,15 +270,13 @@ private fun DrivingContentPortrait(
          )
       }
 
-      LazyHorizontalGrid(
-         GridCells.Adaptive(96.dp),
+      Box(
          Modifier
             .weight(1f)
             .fillMaxWidth(),
-         horizontalArrangement = Arrangement.spacedBy(8.dp),
-         verticalArrangement = Arrangement.spacedBy(8.dp),
+         propagateMinConstraints = true
       ) {
-         locoFunctions(state, toggleFunction)
+         subscreenContent()
       }
 
       val updatedSpeed by rememberUpdatedState(state.speed)
@@ -271,6 +328,7 @@ private fun DrivingContentPortrait(
 @Composable
 private fun DrivingContentLandscape(
    state: DrivingState,
+   subScreen: SubScreen,
    setSpeed: (Float) -> Unit,
    setDirection: (Boolean) -> Unit,
    setTrackPower: (Boolean) -> Unit,
@@ -278,6 +336,8 @@ private fun DrivingContentLandscape(
    openSettings: () -> Unit,
    toggleFunction: (Int, Boolean) -> Unit,
    emergencyStop: () -> Unit,
+   setSubscreen: (SubScreen) -> Unit,
+   subscreenContent: @Composable () -> Unit,
 ) {
    val updatedState = rememberUpdatedState(state)
    GamepadControl(setSpeed, updatedState::value, setDirection, emergencyStop, toggleFunction)
@@ -334,17 +394,29 @@ private fun DrivingContentLandscape(
       }
 
       Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-         Clock(Modifier.padding(bottom = 4.dp))
+         val subscreenUpdated by rememberUpdatedState(subScreen)
 
-         LazyVerticalGrid(
-            GridCells.Adaptive(96.dp),
+         Clock(
+            Modifier
+               .clickable(
+                  onClick = {
+                     if (subscreenUpdated == SubScreen.FUNCTIONS) {
+                        setSubscreen(SubScreen.SCHEDULE)
+                     } else {
+                        setSubscreen(SubScreen.FUNCTIONS)
+                     }
+                  }
+               )
+               .padding(bottom = 4.dp)
+         )
+
+         Box(
             Modifier
                .weight(1f)
                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            propagateMinConstraints = true
          ) {
-            locoFunctions(state, toggleFunction)
+            subscreenContent()
          }
       }
 
@@ -651,10 +723,13 @@ private fun DrivingScreenContentPreview() {
             forward = true,
             connected = true,
          ),
+         SubScreen.FUNCTIONS,
          {},
          {},
          {},
          { _, _ -> },
+         {},
+         {},
          {},
          {},
          {},
@@ -674,10 +749,13 @@ private fun DrivingScreenDisconnectedPreview() {
             forward = true,
             connected = false
          ),
+         SubScreen.FUNCTIONS,
          {},
          {},
          {},
          { _, _ -> },
+         {},
+         {},
          {},
          {},
          {},
@@ -698,10 +776,13 @@ private fun DrivingTrackUnpoweredPreview() {
             connected = true,
             trackPoweredOn = false,
          ),
+         SubScreen.FUNCTIONS,
          {},
          {},
          {},
          { _, _ -> },
+         {},
+         {},
          {},
          {},
          {},

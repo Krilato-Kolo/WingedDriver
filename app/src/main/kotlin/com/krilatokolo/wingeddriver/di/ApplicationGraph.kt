@@ -1,6 +1,7 @@
 package com.krilatokolo.wingeddriver.di
 
 import android.app.Application
+import com.krilatokolo.stationmanager.phoneconnection.MobileConnection
 import com.krilatokolo.wingeddriver.ActivityStartedRepositoryImpl
 import com.krilatokolo.wingeddriver.MainViewModel
 import dev.zacsweers.metro.AppScope
@@ -35,4 +36,5 @@ interface ApplicationGraph {
    fun getMainViewModelFactory(): MainViewModel.Factory
 
    fun getActivityStartedRepository(): ActivityStartedRepositoryImpl
+   fun getMobileConnection(): MobileConnection
 }

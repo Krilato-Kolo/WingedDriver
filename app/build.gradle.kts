@@ -128,6 +128,8 @@ dependencies {
    implementation(projects.driving.data)
    implementation(projects.driving.ui)
    implementation(projects.logging.crashreport)
+   implementation(projects.stationmanager.data)
+   implementation(projects.stationmanager.ui)
    implementation(projects.wifi.data)
    implementation(projects.wifi.ui)
    implementation(projects.tools.ui)

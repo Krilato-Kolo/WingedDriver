@@ -79,6 +79,16 @@ class MainActivity : ComponentActivity(), UsbDriverListener {
       mainViewModelFactory = appGraph.getMainViewModelFactory()
       activityStartedRepository = appGraph.getActivityStartedRepository()
 
+      lifecycleScope.launch {
+         try {
+            appGraph.getMobileConnection().getTrainSchedule().collect {
+               println("got new schedule $it")
+            }
+         } catch (e: Exception) {
+            e.printStackTrace()
+         }
+      }
+
       super.onCreate(savedInstanceState)
       enableEdgeToEdge()
 
