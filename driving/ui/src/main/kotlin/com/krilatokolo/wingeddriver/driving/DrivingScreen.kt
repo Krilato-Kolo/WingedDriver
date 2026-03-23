@@ -351,7 +351,7 @@ private fun DrivingContentLandscape(
    ) {
       Column(
          Modifier
-            .width(48.dp)
+            .width(64.dp)
             .fillMaxHeight(),
          verticalArrangement = Arrangement.spacedBy(16.dp),
          horizontalAlignment = Alignment.CenterHorizontally,
