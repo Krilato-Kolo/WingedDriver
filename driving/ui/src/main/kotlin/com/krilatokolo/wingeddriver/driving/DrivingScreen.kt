@@ -225,7 +225,7 @@ private fun DrivingContentPortrait(
             stringResource(R.string.disconnected),
             tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.graphicsLayer {
-               alpha = if (state.connected) 1f else 0f
+               alpha = if (!state.connected) 1f else 0f
             }
          )
 
