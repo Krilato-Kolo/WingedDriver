@@ -15,6 +15,7 @@ android {
 
 dependencies {
    api(projects.driving.api)
+   api(projects.wifi.api)
    api(projects.common)
    api(projects.commonAndroid)
    api(libs.androidx.datastore.preferences)

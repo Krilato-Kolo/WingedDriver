@@ -23,9 +23,12 @@ import si.inova.kotlinova.core.reporting.ErrorReporter
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 class LocalWifiConnectionImpl(
-   private val context: Context,
+   context: Context,
    private val errorReporter: ErrorReporter,
 ) : LocalWifiConnection {
+   private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
+   private val wifiManager = context.getSystemService<WifiManager>()!!
+
    private val currentConnection = MutableStateFlow<Network?>(null)
 
    override fun getCurrentConnection(): Flow<Network?> {
@@ -33,8 +36,6 @@ class LocalWifiConnectionImpl(
    }
 
    override fun connect(ssidPrefix: String, password: String) {
-      val wifiManager = context.getSystemService<WifiManager>()!!
-
       if (!wifiManager.isWifiEnabled) {
          throw RawPrintException("Wifi is not enabled")
       }
@@ -54,9 +55,11 @@ class LocalWifiConnectionImpl(
          .setNetworkSpecifier(wifiNetworkSpecifier)
          .build()
 
-      val connectivityManager = context.getSystemService<ConnectivityManager>()!!
-
       connectivityManager.requestNetwork(networkRequest, networkCallback)
+   }
+
+   override fun disconnect() {
+      connectivityManager.unregisterNetworkCallback(networkCallback)
    }
 
    private val networkCallback = object : ConnectivityManager.NetworkCallback() {

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.krilatokolo.wingeddriver.common.ActivityStartedRepository
 import com.krilatokolo.wingeddriver.navigation.keys.DrivingScreenKey
 import com.krilatokolo.wingeddriver.tools.invertDirectionPreference
+import com.krilatokolo.wingeddriver.wifi.LocalWifiConnection
 import dev.zacsweers.metro.Inject
 import dispatch.core.withDefault
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +25,7 @@ class DrivingScreenViewModel(
    private val drivingController: DrivingController,
    private val activityStartedRepository: ActivityStartedRepository,
    private val preferenceStore: DataStore<Preferences>,
+   private val localWifiConnection: LocalWifiConnection,
 ) : SingleScreenViewModel<DrivingScreenKey>(resources.scope) {
    private val _uiState = MutableStateFlow<DrivingState>(DrivingState())
    val uiState: StateFlow<DrivingState>
@@ -92,6 +94,7 @@ class DrivingScreenViewModel(
 
    override fun onServiceUnregistered() {
       drivingController.disconnect()
+      localWifiConnection.disconnect()
       super.onServiceUnregistered()
    }
 
