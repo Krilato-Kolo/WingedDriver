@@ -11,14 +11,17 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.url
-import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.isActive
 import kotlinx.rpc.krpc.ktor.client.installKrpc
@@ -26,7 +29,8 @@ import kotlinx.rpc.krpc.ktor.client.rpc
 import kotlinx.rpc.krpc.ktor.client.rpcConfig
 import kotlinx.rpc.krpc.serialization.json.json
 import kotlinx.rpc.withService
-import java.io.IOException
+import logcat.logcat
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @Inject
@@ -36,56 +40,75 @@ class ProxyMobileConnection(
    wifi: LocalWifiConnection,
 ) : MobileConnection {
    private val serviceFlow: Flow<MobileConnection?> = wifi.getCurrentConnection().transformLatest { network ->
-      val rpcClient = HttpClient(OkHttp) {
-         installKrpc()
-
-         engine {
-            config {
-               network?.socketFactory?.let { socketFactory(it) }
-            }
-         }
-      }.rpc {
-         url("ws://192.168.0.207:8080/phone")
-
-         rpcConfig {
-            serialization {
-               json()
-            }
-         }
-
-         timeout {
-            connectTimeoutMillis = DEFAULT_NETWORK_TIMEOUT
-            socketTimeoutMillis = DEFAULT_NETWORK_TIMEOUT
-            requestTimeoutMillis = DEFAULT_NETWORK_TIMEOUT
-         }
-      }
-
       while (currentCoroutineContext().isActive) {
-         val service = rpcClient.withService<MobileConnection>()
-         emit(service)
-         awaitCancellation()
+         val rpcClient = HttpClient(OkHttp) {
+            installKrpc()
+
+            engine {
+               config {
+                  network?.socketFactory?.let { socketFactory(it) }
+               }
+            }
+         }.rpc {
+            url("ws://10.243.239.82:8080/phone")
+
+            rpcConfig {
+               serialization {
+                  json()
+               }
+
+               connector {
+                  callTimeout = DEFAULT_NETWORK_TIMEOUT.milliseconds
+                  waitTimeout = DEFAULT_NETWORK_TIMEOUT.milliseconds
+                  dontWait()
+               }
+            }
+
+            timeout {
+               connectTimeoutMillis = DEFAULT_NETWORK_TIMEOUT
+               socketTimeoutMillis = DEFAULT_NETWORK_TIMEOUT
+               requestTimeoutMillis = DEFAULT_NETWORK_TIMEOUT
+            }
+         }
+
+         try {
+            val service = rpcClient.withService<MobileConnection>()
+            service.ping()
+
+            logcat { "Stationmanager online!" }
+
+            emit(service)
+
+            while (currentCoroutineContext().isActive) {
+               service.ping()
+               delay(10.seconds)
+            }
+         } catch (ignored: Exception) {
+            logcat { "Failed to connect to the stationmanager. Retrying..." }
+            delay(10.seconds)
+         }
       }
-   }
+   }.shareIn(GlobalScope, SharingStarted.WhileSubscribed(1_000))
 
    override fun getTrainSchedule(): Flow<List<TrainSchedule>> = flowWithRetry {
       it?.getTrainSchedule() ?: flowOf(emptyList())
    }
 
+   override suspend fun ping() {
+      serviceFlow.first()?.ping()
+   }
+
    private inline fun <T> flowWithRetry(crossinline block: (MobileConnection?) -> Flow<T>): Flow<T> {
       return serviceFlow.flatMapLatest { service ->
          flow {
-            while (currentCoroutineContext().isActive) {
-               try {
-                  emitAll(block(service))
-               } catch (ignored: IOException) {
-                  emitAll(block(null))
-               }
-
-               delay(5.seconds)
+            try {
+               emitAll(block(service))
+            } catch (ignored: Exception) {
+               // Do nothing, upstream will send us a new service in case of a crash
             }
          }
       }
    }
 }
 
-private val DEFAULT_NETWORK_TIMEOUT = 10.seconds.inWholeMilliseconds
+private val DEFAULT_NETWORK_TIMEOUT = 1.seconds.inWholeMilliseconds

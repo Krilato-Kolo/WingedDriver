@@ -6,4 +6,6 @@ import kotlinx.rpc.annotations.Rpc
 @Rpc
 interface MobileConnection {
    fun getTrainSchedule(): Flow<List<TrainSchedule>>
+
+   suspend fun ping()
 }

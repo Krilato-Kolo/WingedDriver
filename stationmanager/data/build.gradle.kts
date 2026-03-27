@@ -14,4 +14,5 @@ dependencies {
    implementation(libs.kotlin.rpc.json)
    implementation(libs.kotlin.rpc.client)
    implementation(libs.kotlin.rpc.ktorClient)
+   implementation(libs.logcat)
 }
