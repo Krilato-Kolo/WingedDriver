@@ -50,7 +50,7 @@ class ProxyMobileConnection(
                }
             }
          }.rpc {
-            url("ws://10.243.239.82:8080/phone")
+            url("ws://192.168.0.207:8080/phone")
 
             rpcConfig {
                serialization {
