@@ -87,11 +87,11 @@ private fun ScheduleContent(schedule: List<TrainSchedule>, expanded: Boolean = f
 
       for (stop in selectedEntry?.stops.orEmpty()) {
          Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(vertical = 8.dp)) {
-            Text(stop.name, fontSize = 24.sp)
+            Text(stop.name, fontSize = 20.sp)
 
             Spacer(Modifier.weight(1f))
 
-            Text("${stop.from.formatTime()} - ${stop.to.formatTime()}", fontSize = 24.sp)
+            Text("${stop.from.formatTime()} - ${stop.to.formatTime()}", fontSize = 20.sp)
          }
       }
    }
