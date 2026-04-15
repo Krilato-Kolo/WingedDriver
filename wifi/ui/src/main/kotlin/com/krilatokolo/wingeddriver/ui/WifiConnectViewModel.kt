@@ -43,6 +43,7 @@ class WifiConnectViewModel(
                WifiConnectScreenModel(
                   prefs[preferenceSsid].orEmpty(),
                   prefs[preferencePassword].orEmpty(),
+                  prefs[preferenceStationManagerAddress].orEmpty(),
                )
             )
          }
@@ -110,12 +111,29 @@ class WifiConnectViewModel(
          }
       }
    }
+
+   fun setStationManagerIp(stationManagerIp: String) {
+      _state.update { state ->
+         state.mapData {
+            it.copy(stationManagerIp = stationManagerIp)
+         }
+      }
+
+      resources.launchWithExceptionReporting {
+         dataStore.edit { preferences ->
+            preferences[preferenceStationManagerAddress] = stationManagerIp
+         }
+      }
+   }
 }
 
 private val preferenceSsid = stringPreferencesKey("ssid")
 private val preferencePassword = stringPreferencesKey("wifipassword")
 
+private val preferenceStationManagerAddress = stringPreferencesKey("stationManagerAddress")
+
 data class WifiConnectScreenModel(
    val ssid: String,
    val password: String,
+   val stationManagerIp: String,
 )

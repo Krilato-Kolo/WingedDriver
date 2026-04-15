@@ -56,6 +56,12 @@ class WifiConnectScreen(
                visualTransformation = PasswordVisualTransformation(),
                modifier = Modifier.fillMaxWidth()
             )
+            TextField(
+               state.stationManagerIp,
+               onValueChange = viewModel::setStationManagerIp,
+               label = { Text(stringResource(R.string.station_manager_ip)) },
+               modifier = Modifier.fillMaxWidth()
+            )
 
             Button(onClick = { viewModel.connect() }) {
                Text(stringResource(R.string.connect))

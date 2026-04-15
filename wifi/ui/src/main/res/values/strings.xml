@@ -4,4 +4,5 @@
     <string name="network_password">Network Password</string>
     <string name="connect">Connect</string>
     <string name="skip">Skip</string>
+    <string name="station_manager_ip">Station Manager IP</string>
 </resources>

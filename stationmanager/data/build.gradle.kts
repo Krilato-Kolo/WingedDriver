@@ -7,6 +7,7 @@ dependencies {
    api(projects.stationmanager.api)
    api(projects.wifi.api)
 
+   implementation(libs.androidx.datastore.preferences)
    implementation(libs.kotlin.coroutines)
    implementation(libs.ktor.client)
    implementation(libs.ktor.okhttp)
