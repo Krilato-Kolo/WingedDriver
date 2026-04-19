@@ -279,14 +279,27 @@ class MainActivity : ComponentActivity(), UsbDriverListener {
       return true
    }
 
-   @Suppress("CognitiveComplexMethod", "MagicNumber") // Not that complex, just a lot of copy paste
+   @Suppress(
+      "CognitiveComplexMethod",
+      "CyclomaticComplexMethod",
+      "MagicNumber"
+   ) // Not that complex, just a lot of copy paste
    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
       if (event.isFromSource(InputDevice.SOURCE_JOYSTICK)) {
          controllerDispatcher.currentInstance?.let {
-            val leftTrigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER)
-            val rightTrigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER)
+            var leftTrigger = event.getAxisValue(MotionEvent.AXIS_LTRIGGER)
+            var rightTrigger = event.getAxisValue(MotionEvent.AXIS_RTRIGGER)
             val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
             val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+
+            val axisX = event.getAxisValue(MotionEvent.AXIS_X)
+            if (axisX > 0.01f) {
+               rightTrigger = axisX
+               leftTrigger = 0f
+            } else if (axisX < -0.01f) {
+               rightTrigger = 0f
+               leftTrigger = -axisX
+            }
 
             if (leftTrigger != lastLeftTrigger) {
                it.onLeftTriggerUpdate(leftTrigger)
