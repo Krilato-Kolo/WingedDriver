@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.krilatokolo.wingeddriver.navigation.keys.base.LocomotivePickerScreenKey
+import com.krilatokolo.wingeddriver.savedlocos.model.SavedLoco
 import com.krilatokolo.wingeddriver.ui.debugging.PreviewTheme
 import si.inova.kotlinova.navigation.instructions.goBack
 import si.inova.kotlinova.navigation.navigator.Navigator
@@ -41,6 +42,7 @@ class LocomotivePickerScreen(
    override fun Content(key: LocomotivePickerScreenKey) {
       LocomotivePickerScreenContent(
          viewModel.uiState.collectAsStateWithLifecycle().value,
+         viewModel::setFilter,
          {
             viewModel.selectLoco(it)
             navigator.goBack()
@@ -51,8 +53,9 @@ class LocomotivePickerScreen(
 
 @Composable
 private fun LocomotivePickerScreenContent(
-   locos: List<Int>,
-   selectLoco: (Int) -> Unit,
+   locos: List<SavedLoco>,
+   setFilter: (String) -> Unit,
+   selectLoco: (String) -> Unit,
 ) {
    Column(
       Modifier
@@ -63,6 +66,10 @@ private fun LocomotivePickerScreenContent(
       val textState = rememberTextFieldState()
       val focusRequester = remember { FocusRequester() }
 
+      LaunchedEffect(textState.text) {
+         setFilter(textState.text.toString())
+      }
+
       TextField(
          textState,
          Modifier
@@ -71,21 +78,19 @@ private fun LocomotivePickerScreenContent(
             .padding(bottom = 8.dp),
          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
          onKeyboardAction = {
-            textState.text.toString().toIntOrNull()?.let { locoNumber ->
-               selectLoco(locoNumber)
-            }
+            selectLoco(textState.text.toString())
          },
       )
 
       LazyVerticalGrid(
-         GridCells.Adaptive(75.dp),
+         GridCells.Adaptive(170.dp),
          verticalArrangement = Arrangement.spacedBy(8.dp),
          horizontalArrangement = Arrangement.spacedBy(8.dp),
          modifier = Modifier.weight(1f)
       ) {
          items(locos) { loco ->
-            Button(onClick = { selectLoco(loco) }, Modifier.padding(0.dp)) {
-               Text(loco.toString())
+            Button(onClick = { selectLoco(loco.address.toString()) }, Modifier.padding(0.dp)) {
+               Text(loco.name)
             }
          }
       }
@@ -100,6 +105,10 @@ private fun LocomotivePickerScreenContent(
 @Composable
 private fun LocomotivePickerScreenPreview() {
    PreviewTheme {
-      LocomotivePickerScreenContent(List(50) { it + 100 }, {})
+      LocomotivePickerScreenContent(
+         List(50) { SavedLoco(it + 100, name = (it + 100).toString()) },
+         {},
+         {}
+      )
    }
 }

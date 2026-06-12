@@ -22,6 +22,7 @@ dependencies {
 
    implementation(projects.tools.api)
    implementation(projects.commonCompose)
+   implementation(projects.savedlocos.api)
    implementation(libs.dispatch)
    implementation(libs.kotlinova.core)
    implementation(libs.kotlinova.compose)

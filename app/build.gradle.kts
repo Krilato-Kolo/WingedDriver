@@ -1,4 +1,6 @@
 import com.slack.keeper.optInToKeeper
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
    androidAppModule
@@ -26,6 +28,11 @@ android {
       testInstrumentationRunnerArguments += "clearPackageData" to "true"
       // Needed to enable test coverage
       testInstrumentationRunnerArguments += "useTestStorageService" to "true"
+
+      val localProperties = Properties()
+      FileInputStream(File(project.rootDir, "local.properties")).use { stream -> localProperties.load(stream) }
+
+      buildConfigField("String", "BACKEND_URL", "\"" + localProperties.getValue("winged_driver_backend_url") as String + "\"")
    }
 
    testOptions {
@@ -128,6 +135,8 @@ dependencies {
    implementation(projects.driving.data)
    implementation(projects.driving.ui)
    implementation(projects.logging.crashreport)
+   implementation(projects.savedlocos.api)
+   implementation(projects.savedlocos.data)
    implementation(projects.stationmanager.data)
    implementation(projects.stationmanager.ui)
    implementation(projects.wifi.data)
