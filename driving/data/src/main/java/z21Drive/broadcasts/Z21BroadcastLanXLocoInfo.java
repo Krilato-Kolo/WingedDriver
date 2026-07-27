@@ -1,7 +1,5 @@
 package z21Drive.broadcasts;
 
-import java.util.Arrays;
-
 /**
  * Probably the most important broadcast, because it represents the current state of a loco.
  * Supports up to 28 functions.
@@ -52,8 +50,6 @@ public class Z21BroadcastLanXLocoInfo extends Z21Broadcast {
         speed = ((speedArray[0] ? 1 << 7 : 0) + (speedArray[1] ? 1 << 6 : 0) + (speedArray[2] ? 1 << 5 : 0) +
                 (speedArray[3] ? 1 << 4 : 0) + (speedArray[4] ? 1 << 3 : 0) + (speedArray[5] ? 1 << 2 : 0) +
                 (speedArray[6] ? 1 << 1 : 0) + (speedArray[7] ? 1 : 0));
-
-        System.out.println("value " + Arrays.toString(byteRepresentation));
 
         //Set all functions.
         //Not really a good design choice having so many variables...
