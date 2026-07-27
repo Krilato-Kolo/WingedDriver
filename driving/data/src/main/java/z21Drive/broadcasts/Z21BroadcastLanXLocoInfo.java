@@ -1,5 +1,7 @@
 package z21Drive.broadcasts;
 
+import java.util.Arrays;
+
 /**
  * Probably the most important broadcast, because it represents the current state of a loco.
  * Supports up to 28 functions.
@@ -51,6 +53,8 @@ public class Z21BroadcastLanXLocoInfo extends Z21Broadcast {
                 (speedArray[3] ? 1 << 4 : 0) + (speedArray[4] ? 1 << 3 : 0) + (speedArray[5] ? 1 << 2 : 0) +
                 (speedArray[6] ? 1 << 1 : 0) + (speedArray[7] ? 1 : 0));
 
+        System.out.println("value " + Arrays.toString(byteRepresentation));
+
         //Set all functions.
         //Not really a good design choice having so many variables...
         //// FIXME: 19.2.2016 one day when I have too much time change this into an array
@@ -60,33 +64,33 @@ public class Z21BroadcastLanXLocoInfo extends Z21Broadcast {
         f2On = db4bits[6];
         f3On = db4bits[5];
         f4On = db4bits[4];
-        boolean[] db5bits = fromByte(byteRepresentation[10]);
-        f5On = db5bits[0];
-        f6On = db5bits[1];
-        f7On = db5bits[2];
-        f8On = db5bits[3];
-        f9On = db5bits[4];
-        f10On = db5bits[5];
-        f11On = db5bits[6];
-        f12On = db5bits[7];
-        boolean[] db6bits = fromByte(byteRepresentation[11]);
-        f13On = db6bits[0];
-        f14On = db6bits[1];
-        f15On = db6bits[2];
-        f16On = db6bits[3];
-        f17On = db6bits[4];
-        f18On = db6bits[5];
-        f19On = db6bits[6];
-        f20On = db6bits[7];
-        boolean[] db7bits = fromByte(byteRepresentation[12]);
-        f21On = db7bits[0];
-        f22On = db7bits[1];
-        f23On = db7bits[2];
-        f24On = db7bits[3];
-        f25On = db7bits[4];
-        f26On = db7bits[5];
-        f27On = db7bits[6];
-        f28On = db7bits[7];
+        byte db5bits = byteRepresentation[10];
+        f12On = (db5bits & (1 << 7)) != 0;
+        f11On = (db5bits & (1 << 6)) != 0;
+        f10On = (db5bits & (1 << 5)) != 0;
+        f9On = (db5bits & (1 << 4)) != 0;
+        f8On = (db5bits & (1 << 3)) != 0;
+        f7On = (db5bits & (1 << 2)) != 0;
+        f6On = (db5bits & (1 << 1)) != 0;
+        f5On = (db5bits & (1 << 0)) != 0;
+        byte db6bits = byteRepresentation[11];
+        f20On = (db6bits & (1 << 7)) != 0;
+        f19On = (db6bits & (1 << 6)) != 0;
+        f18On = (db6bits & (1 << 5)) != 0;
+        f17On = (db6bits & (1 << 4)) != 0;
+        f16On = (db6bits & (1 << 3)) != 0;
+        f15On = (db6bits & (1 << 2)) != 0;
+        f14On = (db6bits & (1 << 1)) != 0;
+        f13On = (db6bits & (1 << 0)) != 0;
+        byte db7bits = byteRepresentation[12];
+        f28On = (db7bits & (1 << 7)) != 0;
+        f27On = (db7bits & (1 << 6)) != 0;
+        f26On = (db7bits & (1 << 5)) != 0;
+        f25On = (db7bits & (1 << 4)) != 0;
+        f24On = (db7bits & (1 << 3)) != 0;
+        f23On = (db7bits & (1 << 2)) != 0;
+        f22On = (db7bits & (1 << 1)) != 0;
+        f21On = (db7bits & (1 << 0)) != 0;
     }
 
 
