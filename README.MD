@@ -6,6 +6,12 @@ This app uses Android's ConnectivityManager to connect to the Wi-Fi network dire
 control Wi-Fi network, so the rest of the phone can still use mobile data
 (since these networks are mostly without the internet access).
 
+# Jogwheel controls
+
+* Rotate the wheel - change speed
+* Single tap - emergency stop the locomotive
+* Long tap - slow stop the locomotive
+
 # Controller map
 
 Trains can also be controlled via USB or bluetooth Controller / gamepad.

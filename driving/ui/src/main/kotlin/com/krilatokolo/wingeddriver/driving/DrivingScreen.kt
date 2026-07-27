@@ -2,6 +2,7 @@
 
 package com.krilatokolo.wingeddriver.driving
 
+import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.compose.foundation.Canvas
@@ -83,6 +84,7 @@ import si.inova.kotlinova.navigation.screens.InjectNavigationScreen
 import si.inova.kotlinova.navigation.screens.Screen
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlin.math.absoluteValue
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
@@ -286,6 +288,8 @@ private fun DrivingContentPortrait(
          bumpSpeed = {
             setSpeed(updatedSpeed + it * JOGWHEEL_SENSITIVITY)
          },
+         setSpeed = setSpeed,
+         emergencyStop = emergencyStop,
          Modifier
             .weight(1f)
             .fillMaxWidth()
@@ -426,6 +430,8 @@ private fun DrivingContentLandscape(
          bumpSpeed = {
             setSpeed(updatedSpeed + it * JOGWHEEL_SENSITIVITY)
          },
+         setSpeed = setSpeed,
+         emergencyStop = emergencyStop,
          Modifier
             .weight(1f)
             .fillMaxHeight()
@@ -496,7 +502,14 @@ private fun LazyGridScope.locoFunctions(
 }
 
 @Composable
-private fun Jogwheel(currentSpeed: () -> Float, bumpSpeed: (Float) -> Unit, modifier: Modifier = Modifier) {
+@Suppress("CyclomaticComplexMethod") // Lazy
+private fun Jogwheel(
+   currentSpeed: () -> Float,
+   bumpSpeed: (Float) -> Unit,
+   setSpeed: (Float) -> Unit,
+   emergencyStop: () -> Unit,
+   modifier: Modifier = Modifier,
+) {
    val color = MaterialTheme.colorScheme.onSurface
 
    var rotation by remember { mutableDoubleStateOf(0.0) }
@@ -523,49 +536,83 @@ private fun Jogwheel(currentSpeed: () -> Float, bumpSpeed: (Float) -> Unit, modi
 
    @Suppress("MagicNumber")
    Canvas(
-      modifier.pointerInput(Unit) {
-         awaitEachGesture {
-            val firstDown = awaitFirstDown()
+      modifier
+         .pointerInput(Unit) {
+            awaitEachGesture {
+               val firstDown = awaitFirstDown()
+               val downTime = SystemClock.elapsedRealtime()
+               var totalMoved = 0f
 
-            val radius = min(size.width, size.height) / 2
-            val minDistanceFromCenterSquared = square(radius * CLICK_OUTER_AREA)
-            val centerX = size.width / 2
-            val centerY = size.height / 2
-            val downPos = firstDown.position
-            var lastAngle = Math.toDegrees(atan2((downPos.y - centerY).toDouble(), (downPos.x - centerX).toDouble())) + 180
+               val radius = min(size.width, size.height) / 2
+               val minDistanceFromCenterSquared = square(radius * CLICK_OUTER_AREA)
+               val centerX = size.width / 2
+               val centerY = size.height / 2
+               val downPos = firstDown.position
+               var lastAngle = Math.toDegrees(atan2((downPos.y - centerY).toDouble(), (downPos.x - centerX).toDouble())) + 180
+               var stopMoving = false
 
-            outerLoop@ while (true) {
-               val event = awaitPointerEvent()
+               outerLoop@ while (true) {
+                  val event = withTimeoutOrNull(100) { awaitPointerEvent() }
 
-               for (change in event.changes) {
-                  val diffX = change.position.y - centerY
-                  val diffY = change.position.x - centerX
-                  val distFromCenterSquared = square(diffX) + square(diffY)
-                  if (!change.pressed || distFromCenterSquared < minDistanceFromCenterSquared) {
+                  for (change in event?.changes.orEmpty()) {
+                     val diffX = change.position.y - centerY
+                     val diffY = change.position.x - centerX
+                     totalMoved += diffX.absoluteValue
+                     totalMoved += diffY.absoluteValue
+
+                     if (!change.pressed) {
+                        val upTime = SystemClock.elapsedRealtime()
+                        val tapDuration = upTime - downTime
+                        if (tapDuration < LONG_CLICK_DURATION_MS && totalMoved < MAX_CLICK_POINTER_MOVED_THRESHOLD) {
+                           // Single click
+                           emergencyStop()
+                           vibrator.vibrate(
+                              VibrationEffect.createOneShot(
+                                 LONG_VIBRATION_DURATION_MS,
+                                 VibrationEffect.DEFAULT_AMPLITUDE
+                              )
+                           )
+                        }
+                        break@outerLoop
+                     }
+
+                     val distFromCenterSquared = square(diffX) + square(diffY)
+                     if (distFromCenterSquared < minDistanceFromCenterSquared) {
+                        stopMoving = true
+                     }
+
+                     if (!stopMoving) {
+                        val moveAngle =
+                           Math.toDegrees(
+                              atan2(
+                                 diffX.toDouble(),
+                                 diffY.toDouble()
+                              )
+                           ) + 180
+
+                        val absoluteDiff = -(moveAngle - lastAngle)
+                        val finalDiff = if (absoluteDiff > 180) {
+                           absoluteDiff - 360
+                        } else if (absoluteDiff < -180) {
+                           absoluteDiff + 360
+                        } else {
+                           absoluteDiff
+                        }
+                        updateRotation(finalDiff)
+                        lastAngle = moveAngle
+                     }
+                  }
+
+                  val heldDuration = SystemClock.elapsedRealtime() - downTime
+                  if (heldDuration > LONG_CLICK_DURATION_MS && totalMoved < MAX_CLICK_POINTER_MOVED_THRESHOLD) {
+                     // Long click
+                     setSpeed(0f)
+                     vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
                      break@outerLoop
                   }
-                  val moveAngle =
-                     Math.toDegrees(
-                        atan2(
-                           diffX.toDouble(),
-                           diffY.toDouble()
-                        )
-                     ) + 180
-
-                  val absoluteDiff = -(moveAngle - lastAngle)
-                  val finalDiff = if (absoluteDiff > 180) {
-                     absoluteDiff - 360
-                  } else if (absoluteDiff < -180) {
-                     absoluteDiff + 360
-                  } else {
-                     absoluteDiff
-                  }
-                  updateRotation(finalDiff)
-                  lastAngle = moveAngle
                }
             }
          }
-      }
    ) {
       val radius = size.minDimension / 2
       val spokeStart = (1 - CLICK_OUTER_AREA)
@@ -795,5 +842,8 @@ private const val JOGWHEEL_SENSITIVITY = 0.002f
 private const val ALMOST_ZERO = 0.01f
 private const val ALMOST_ONE = 0.99f
 private const val CLICK_SENSITIVITY = 30
+private const val LONG_CLICK_DURATION_MS = 250L
 private const val LONG_VIBRATION_DURATION_MS = 500L
+private const val EMERGENCY_VIBRATION_DURATION_MS = 1000L
 private const val CLICK_OUTER_AREA = 0.4f
+private const val MAX_CLICK_POINTER_MOVED_THRESHOLD = 1_000
