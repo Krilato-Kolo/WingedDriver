@@ -450,7 +450,7 @@ private fun DrivingContentLandscape(
             )
          }
 
-         val buttonText = if (state.forward) "/\\\n\uD83D\uDE82" else "\uD83D\uDE82\n\\/"
+         val buttonText = if (state.forward) ">\n\uD83D\uDE82" else "<\n\uD83D\uDE82"
          Button(onClick = { setDirection(!state.forward) }, modifier = Modifier.weight(1f)) {
             Text(
                buttonText,
