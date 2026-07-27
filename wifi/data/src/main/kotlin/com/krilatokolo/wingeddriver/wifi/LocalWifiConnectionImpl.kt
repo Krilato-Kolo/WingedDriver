@@ -59,7 +59,11 @@ class LocalWifiConnectionImpl(
    }
 
    override fun disconnect() {
-      connectivityManager.unregisterNetworkCallback(networkCallback)
+      try {
+         connectivityManager.unregisterNetworkCallback(networkCallback)
+      } catch (_: IllegalArgumentException) {
+         // Callback was already registered
+      }
    }
 
    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
