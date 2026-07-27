@@ -64,6 +64,8 @@ class LocalWifiConnectionImpl(
       } catch (_: IllegalArgumentException) {
          // Callback was already registered
       }
+
+      currentConnection.value = null
    }
 
    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
