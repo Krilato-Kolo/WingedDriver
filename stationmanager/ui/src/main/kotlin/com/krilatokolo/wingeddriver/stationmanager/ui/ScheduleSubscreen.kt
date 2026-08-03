@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -91,7 +92,13 @@ private fun ScheduleContent(schedule: List<TrainSchedule>, expanded: Boolean = f
 
             Spacer(Modifier.weight(1f))
 
-            Text("${stop.from.formatTime()} - ${stop.to.formatTime()}", fontSize = 20.sp)
+            val text = if (stop.from == stop.to) {
+               stringResource(R.string.drivethrough, stop.to.formatTime())
+            } else {
+               "${stop.from.formatTime()} - ${stop.to.formatTime()}"
+            }
+
+            Text(text, fontSize = 20.sp)
          }
       }
    }
@@ -112,9 +119,10 @@ private fun SchedulePreview() {
       val schedule = listOf(
          TrainSchedule(
             "Train A",
-            List(5) {
+            List(4) {
                Stop("Stop $it", LocalTime(6 + it, 0), LocalTime(7 + it, 0))
             } + listOf(
+               Stop("Stop 4", LocalTime(10, 0), LocalTime(10, 0)),
                Stop("Stop 5", null, LocalTime(11, 0)),
                Stop("Stop 6", LocalTime(12, 0), null),
             )
