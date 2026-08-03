@@ -46,10 +46,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -104,6 +106,39 @@ class DrivingScreen(
 
       var selectedSubscreen by remember { mutableStateOf(SubScreen.FUNCTIONS) }
 
+      val subscreen = remember {
+         movableContentOf { portrait: Boolean ->
+            val subScreenStateHolder = rememberSaveableStateHolder()
+            subScreenStateHolder.SaveableStateProvider(selectedSubscreen.name) {
+               when (selectedSubscreen) {
+                  SubScreen.FUNCTIONS -> {
+                     if (portrait) {
+                        LazyHorizontalGrid(
+                           GridCells.Adaptive(96.dp),
+                           horizontalArrangement = Arrangement.spacedBy(8.dp),
+                           verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                           locoFunctions(state, viewModel::toggleLocoFunction)
+                        }
+                     } else {
+                        LazyVerticalGrid(
+                           GridCells.Adaptive(96.dp),
+                           horizontalArrangement = Arrangement.spacedBy(8.dp),
+                           verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                           locoFunctions(state, viewModel::toggleLocoFunction)
+                        }
+                     }
+                  }
+
+                  SubScreen.SCHEDULE -> {
+                     scheduleScreen.Content(ScheduleSubscreenKey)
+                  }
+               }
+            }
+         }
+      }
+
       DrivingScreenContent(
          state,
          selectedSubscreen,
@@ -115,33 +150,7 @@ class DrivingScreen(
          { navigator.navigateTo(ToolsScreenKey) },
          viewModel::emergencyStop,
          { selectedSubscreen = it },
-         { portrait ->
-            when (selectedSubscreen) {
-               SubScreen.FUNCTIONS -> {
-                  if (portrait) {
-                     LazyHorizontalGrid(
-                        GridCells.Adaptive(96.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                     ) {
-                        locoFunctions(state, viewModel::toggleLocoFunction)
-                     }
-                  } else {
-                     LazyVerticalGrid(
-                        GridCells.Adaptive(96.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                     ) {
-                        locoFunctions(state, viewModel::toggleLocoFunction)
-                     }
-                  }
-               }
-
-               SubScreen.SCHEDULE -> {
-                  scheduleScreen.Content(ScheduleSubscreenKey)
-               }
-            }
-         },
+         subscreen
       )
    }
 }
