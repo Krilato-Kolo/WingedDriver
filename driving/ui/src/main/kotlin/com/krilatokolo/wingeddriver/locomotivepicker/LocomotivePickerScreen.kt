@@ -51,6 +51,10 @@ class LocomotivePickerScreen(
          {
             viewModel.selectLoco(it)
             navigator.goBack()
+         },
+         {
+            viewModel.selectLoco(it)
+            navigator.goBack()
          }
       )
    }
@@ -61,6 +65,7 @@ private fun LocomotivePickerScreenContent(
    locos: List<SavedLoco>,
    setFilter: (String) -> Unit,
    selectLoco: (String) -> Unit,
+   selectLocoGw: (SavedLoco) -> Unit,
 ) {
    Column(
       Modifier
@@ -95,7 +100,7 @@ private fun LocomotivePickerScreenContent(
       ) {
          items(locos) { loco ->
             Button(
-               onClick = { selectLoco(loco.address.toString()) },
+               onClick = { selectLocoGw(loco) },
                modifier = Modifier.padding(0.dp),
                shape = RectangleShape,
                contentPadding = PaddingValues(1.dp)
@@ -141,7 +146,8 @@ private fun LocomotivePickerScreenPreview() {
             SavedLoco(it + 100, name = (it + 100).toString(), imageUrl = it.takeIf { it % 5 != 0 }?.toString())
          },
          {},
-         {}
+         {},
+         {},
       )
    }
 }

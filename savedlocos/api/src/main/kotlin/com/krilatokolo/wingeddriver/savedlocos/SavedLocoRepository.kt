@@ -6,4 +6,6 @@ import si.inova.kotlinova.core.outcome.Outcome
 
 interface SavedLocoRepository {
    fun getSavedLocos(): Flow<Outcome<List<SavedLoco>>>
+
+   fun getLoco(id: String): Flow<Outcome<SavedLoco?>>
 }

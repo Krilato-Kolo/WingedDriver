@@ -59,7 +59,11 @@ class LocomotivePickerViewModel(
       if (number != null) {
          drivingController.changeLoco(number)
       } else if (currentLocos.size == 1) {
-         drivingController.changeLoco(currentLocos.first().address)
+         selectLoco(currentLocos.first())
       }
+   }
+
+   fun selectLoco(loco: SavedLoco) {
+      drivingController.changeLoco(loco.address, loco.backendId)
    }
 }

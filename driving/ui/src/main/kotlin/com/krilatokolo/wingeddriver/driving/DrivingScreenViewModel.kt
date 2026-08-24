@@ -5,6 +5,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.krilatokolo.wingeddriver.common.ActivityStartedRepository
 import com.krilatokolo.wingeddriver.navigation.keys.DrivingScreenKey
+import com.krilatokolo.wingeddriver.savedlocos.SavedLocoRepository
+import com.krilatokolo.wingeddriver.savedlocos.model.SavedLoco
 import com.krilatokolo.wingeddriver.tools.invertDirectionPreference
 import com.krilatokolo.wingeddriver.wifi.LocalWifiConnection
 import dev.zacsweers.metro.Inject
@@ -12,6 +14,9 @@ import dispatch.core.withDefault
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import si.inova.kotlinova.core.flow.collectInto
 import si.inova.kotlinova.core.outcome.CoroutineResourceManager
 import si.inova.kotlinova.navigation.services.ContributesScopedService
@@ -26,6 +31,7 @@ class DrivingScreenViewModel(
    private val activityStartedRepository: ActivityStartedRepository,
    private val preferenceStore: DataStore<Preferences>,
    private val localWifiConnection: LocalWifiConnection,
+   private val savedLocoRepository: SavedLocoRepository,
 ) : SingleScreenViewModel<DrivingScreenKey>(resources.scope) {
    private val _uiState = MutableStateFlow<DrivingState>(DrivingState())
    val uiState: StateFlow<DrivingState>
@@ -47,15 +53,23 @@ class DrivingScreenViewModel(
       }
 
       resources.launchWithExceptionReporting {
+         val locoFlow = drivingController.activeLoco.flatMapLatest { activeLoco ->
+            val savedLoco = activeLoco?.backendId?.let { id ->
+               savedLocoRepository.getLoco(id).map { it.data }
+            } ?: flowOf(null)
+
+            savedLoco.map { activeLoco to it }
+         }
+
          val flow = combine(
             preferenceStore.data,
             drivingController.trackState,
-            drivingController.activeLoco
-         ) { preferences, trackState, activeLoco ->
+            locoFlow,
+         ) { preferences, trackState, (activeLoco, savedLoco) ->
             invertDirection = preferences.get(invertDirectionPreference) == true
             if (activeLoco != null) {
                DrivingState(
-                  activeLoco.id,
+                  savedLoco ?: SavedLoco(activeLoco.id, createDefaultFunctions(), name = activeLoco.id.toString()),
                   activeLoco.speed,
                   activeLoco.maxSpeed,
                   activeLoco.forward.possiblyInvert(),
@@ -107,8 +121,14 @@ class DrivingScreenViewModel(
    }
 }
 
+internal fun createDefaultFunctions(): List<SavedLoco.Function> {
+   return List(TOTAL_DEFAULT_LOCO_FUNCTIONS) { index ->
+      SavedLoco.Function(index, "F$index")
+   }
+}
+
 data class DrivingState(
-   val activeLoco: Int? = null,
+   val activeLoco: SavedLoco? = null,
    val speed: Float = 0f,
    val maxSpeed: Int = 0,
    val forward: Boolean = true,
@@ -116,3 +136,5 @@ data class DrivingState(
    val trackPoweredOn: Boolean = true,
    val activeFunctions: List<Int> = emptyList(),
 )
+
+private const val TOTAL_DEFAULT_LOCO_FUNCTIONS = 28

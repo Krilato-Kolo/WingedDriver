@@ -16,7 +16,7 @@ interface DrivingController {
 
    fun changeDirection(forward: Boolean)
 
-   fun changeLoco(id: Int)
+   fun changeLoco(id: Int, backendId: String? = null)
 
    fun toggleTrackPower(poweredOn: Boolean)
 

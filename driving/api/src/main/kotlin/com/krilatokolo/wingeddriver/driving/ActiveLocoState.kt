@@ -6,4 +6,5 @@ data class ActiveLocoState(
    val forward: Boolean,
    val maxSpeed: Int,
    val activeFunctions: List<Int>,
+   val backendId: String? = null,
 )

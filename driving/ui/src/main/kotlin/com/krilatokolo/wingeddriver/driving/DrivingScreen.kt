@@ -30,7 +30,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.systemGestureExclusion
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -40,6 +42,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.material3.VerticalSlider
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
@@ -56,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -75,6 +79,7 @@ import com.krilatokolo.wingeddriver.navigation.ScheduleSubscreenKey
 import com.krilatokolo.wingeddriver.navigation.keys.DrivingScreenKey
 import com.krilatokolo.wingeddriver.navigation.keys.ToolsScreenKey
 import com.krilatokolo.wingeddriver.navigation.keys.base.LocomotivePickerScreenKey
+import com.krilatokolo.wingeddriver.savedlocos.model.SavedLoco
 import com.krilatokolo.wingeddriver.ui.debugging.FullScreenPreviews
 import com.krilatokolo.wingeddriver.ui.debugging.PreviewTheme
 import kotlinx.coroutines.currentCoroutineContext
@@ -182,7 +187,7 @@ private fun DrivingScreenContent(
             toggleFunction,
             emergencyStop,
             setSubscreen,
-            { scheduleScreen(true) },
+            { scheduleScreen(false) },
          )
       } else {
          DrivingContentPortrait(
@@ -277,7 +282,7 @@ private fun DrivingContentPortrait(
 
       Button(onClick = openLocomotivePicker) {
          Text(
-            state.activeLoco?.toString() ?: stringResource(R.string.select_train),
+            state.activeLoco?.name ?: stringResource(R.string.select_train),
             Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
          )
@@ -400,7 +405,7 @@ private fun DrivingContentLandscape(
 
       Button(onClick = openLocomotivePicker) {
          Text(
-            state.activeLoco?.toString().orEmpty(),
+            state.activeLoco?.name.orEmpty(),
             Modifier
                .fillMaxHeight()
                .wrapContentHeight(),
@@ -498,16 +503,22 @@ private fun LazyGridScope.locoFunctions(
    state: DrivingState,
    toggleFunction: (Int, Boolean) -> Unit,
 ) {
-   items(TOTAL_LOCO_FUNCTIONS, key = { it }) { index ->
+   items(state.activeLoco?.functions.orEmpty(), key = { it.functionNumber }) { function ->
       ToggleButton(
-         state.activeFunctions.contains(index),
-         onCheckedChange = { toggleFunction(index, it) },
+         state.activeFunctions.contains(function.functionNumber),
+         onCheckedChange = { toggleFunction(function.functionNumber, it) },
          modifier = Modifier
             .wrapContentHeight()
             .size(96.dp),
-         contentPadding = PaddingValues.Zero,
+         contentPadding = PaddingValues(4.dp),
+         shapes = ToggleButtonShapes(RectangleShape, RectangleShape, RectangleShape)
       ) {
-         Text("F$index", fontSize = 32.sp)
+         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            // Placeholder icon
+            // Spacer(Modifier.size(60.dp).background(Color.Green).padding(bottom = 4.dp))
+
+            Text(function.functionName, autoSize = TextAutoSize.StepBased(stepSize = 2.5.sp), maxLines = 1)
+         }
       }
    }
 }
@@ -787,7 +798,7 @@ private fun DrivingScreenContentPreview() {
    PreviewTheme {
       DrivingScreenContent(
          DrivingState(
-            activeLoco = 10,
+            activeLoco = SavedLoco(10, createDefaultFunctions(), name = "10"),
             speed = 0.3f,
             maxSpeed = 128,
             forward = true,
@@ -813,7 +824,7 @@ private fun DrivingScreenDisconnectedPreview() {
    PreviewTheme {
       DrivingScreenContent(
          DrivingState(
-            activeLoco = 10,
+            activeLoco = SavedLoco(10, createDefaultFunctions(), name = "10"),
             speed = 0.3f,
             maxSpeed = 128,
             forward = true,
@@ -839,7 +850,7 @@ private fun DrivingTrackUnpoweredPreview() {
    PreviewTheme {
       DrivingScreenContent(
          DrivingState(
-            activeLoco = 10,
+            activeLoco = SavedLoco(10, createDefaultFunctions(), name = "10"),
             speed = 0.3f,
             maxSpeed = 128,
             forward = true,
@@ -860,7 +871,6 @@ private fun DrivingTrackUnpoweredPreview() {
    }
 }
 
-private const val TOTAL_LOCO_FUNCTIONS = 28
 private const val JOGWHEEL_SENSITIVITY = 0.002f
 private const val ALMOST_ZERO = 0.01f
 private const val ALMOST_ONE = 0.99f

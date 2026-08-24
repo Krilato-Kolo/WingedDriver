@@ -15,8 +15,8 @@ data class SavedLoco(
 ) {
    @JsonClass(generateAdapter = true)
    data class Function(
-      val functionImage: String,
-      val functionName: String,
       val functionNumber: Int,
+      val functionName: String,
+      val functionImage: String? = null,
    )
 }
