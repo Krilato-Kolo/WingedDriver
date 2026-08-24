@@ -1,6 +1,7 @@
 package com.krilatokolo.wingeddriver.locomotivepicker
 
 import androidx.compose.runtime.Stable
+import com.krilatokolo.wingeddriver.common.normalizer.normalize
 import com.krilatokolo.wingeddriver.driving.DrivingController
 import com.krilatokolo.wingeddriver.navigation.keys.base.LocomotivePickerScreenKey
 import com.krilatokolo.wingeddriver.savedlocos.SavedLocoRepository
@@ -33,12 +34,13 @@ class LocomotivePickerViewModel(
    override fun onServiceRegistered() {
       resources.launchWithExceptionReporting {
          val usedMapped = drivingController.locos.map { list ->
-            list.map { SavedLoco(it, name = it.toString()) }
+            list.map { SavedLoco(it, name = it.toString(), normalizedName = it.toString()) }
          }
          combine(savedLocoRepository.getSavedLocos(), usedMapped, filter) { savedLocos, usedControllerLocos, filter ->
+            val normalFilter = filter.lowercase().normalize()
 
             (savedLocos.data.orEmpty() + usedControllerLocos).filter {
-               it.name.contains(filter, ignoreCase = true)
+               it.normalizedName.contains(normalFilter, ignoreCase = true)
             }
          }
             .flowOnDefault()
