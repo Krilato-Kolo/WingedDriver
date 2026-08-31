@@ -20,7 +20,7 @@ public class Z21ActionSetLocoDrive extends Z21Action {
         byteRepresentation.add(Byte.decode("0x00"));
         if (locoAddress < 1)
             throw new LocoAddressOutOfRangeException(locoAddress);
-        addDataToByteRepresentation(new Object[]{locoAddress, (byte) speed, (byte) speedStepsID, direction});
+        addDataToByteRepresentation(new Object[]{locoAddress, (byte) (speed + 1), (byte) speedStepsID, direction});
         addLenByte();
     }
 

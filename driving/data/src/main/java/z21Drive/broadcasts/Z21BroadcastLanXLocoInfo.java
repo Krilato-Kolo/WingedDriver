@@ -37,19 +37,14 @@ public class Z21BroadcastLanXLocoInfo extends Z21Broadcast {
         else if (binary.equals("00000010") || binary.equals("00001010"))
             speedSteps = 28;
         else if (binary.equals("00000100") || binary.equals("00001100"))
-            speedSteps = 128;
+            speedSteps = 127;
 
         boolean[] db3bits = fromByte(byteRepresentation[8]);
         direction = byteRepresentation[8] < 0;
-        boolean[] speedArray = db3bits.clone();
-
-        if (direction) {
-            speedArray = fromByte((byte) (byteRepresentation[8] + 128));
+        speed = (byteRepresentation[8] & (0b01111111)) - 1;
+        if (speed == -1) {
+            speed = 0;
         }
-        speedArray[0] = false;
-        speed = ((speedArray[0] ? 1 << 7 : 0) + (speedArray[1] ? 1 << 6 : 0) + (speedArray[2] ? 1 << 5 : 0) +
-                (speedArray[3] ? 1 << 4 : 0) + (speedArray[4] ? 1 << 3 : 0) + (speedArray[5] ? 1 << 2 : 0) +
-                (speedArray[6] ? 1 << 1 : 0) + (speedArray[7] ? 1 : 0));
 
         //Set all functions.
         //Not really a good design choice having so many variables...
