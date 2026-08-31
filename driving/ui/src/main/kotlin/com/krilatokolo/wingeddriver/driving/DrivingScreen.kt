@@ -107,7 +107,7 @@ class DrivingScreen(
 ) : Screen<DrivingScreenKey>() {
    @Composable
    override fun Content(key: DrivingScreenKey) {
-      val state = viewModel.uiState.collectAsState().value
+      val state = viewModel.uiState.collectAsState()
 
       var selectedSubscreen by remember { mutableStateOf(SubScreen.FUNCTIONS) }
 
@@ -123,7 +123,7 @@ class DrivingScreen(
                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                            verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                           locoFunctions(state, viewModel::toggleLocoFunction)
+                           locoFunctions(state.value, viewModel::toggleLocoFunction)
                         }
                      } else {
                         LazyVerticalGrid(
@@ -131,7 +131,7 @@ class DrivingScreen(
                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                            verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                           locoFunctions(state, viewModel::toggleLocoFunction)
+                           locoFunctions(state.value, viewModel::toggleLocoFunction)
                         }
                      }
                   }
@@ -145,7 +145,7 @@ class DrivingScreen(
       }
 
       DrivingScreenContent(
-         state,
+         state.value,
          selectedSubscreen,
          viewModel::setSpeed,
          viewModel::setDirection,
